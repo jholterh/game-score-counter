@@ -11,6 +11,8 @@ interface Player {
   totalScore: number;
   scores: number[];
   joinedAtRound: number;
+  isActive: boolean;
+  gaveUpAtRound?: number;
 }
 
 interface GameData {
@@ -62,9 +64,18 @@ serve(async (req) => {
 - Last Place: ${lastPlace.name} with ${lastPlace.totalScore} points
 
 Player Details:
-${sortedPlayers.map((p, i) => 
-  `${i + 1}. ${p.name}: ${p.totalScore} points (Round scores: ${p.scores.join(', ')})${p.joinedAtRound > 1 ? ` - Joined in Round ${p.joinedAtRound}` : ''}`
-).join('\n')}
+${sortedPlayers.map((p, i) => {
+  let details = `${i + 1}. ${p.name}: ${p.totalScore} points (Round scores: ${p.scores.join(', ')})`;
+  if (p.joinedAtRound > 1) {
+    details += ` - Joined in Round ${p.joinedAtRound} (starting points were a gift/handicap)`;
+  }
+  if (!p.isActive && p.gaveUpAtRound) {
+    details += ` - Gave up at Round ${p.gaveUpAtRound}`;
+  } else if (!p.isActive) {
+    details += ` - Gave up during game`;
+  }
+  return details;
+}).join('\n')}
 
 Notable Moments:
 ${biggestGains.map(g => `- ${g.name} had their best round (${g.maxGain} points) in Round ${g.round}`).join('\n')}
@@ -75,8 +86,9 @@ Provide a fun, engaging analysis that:
 2. Explains why ${winner.name} won (2-3 sentences)
 3. Analyzes why ${lastPlace.name} came in last (1-2 sentences)
 4. Highlights 2-3 other interesting moments from the game
-5. CRITICAL: If any players joined mid-game (joinedAtRound > 1), acknowledge this explicitly. Do NOT assume they played from round 1 or had scores in rounds before they joined. Their scores from earlier rounds were distributed catch-up points, not actual gameplay.
-6. Keep the tone entertaining and fully embody your persona
+5. CRITICAL: If any players joined mid-game (joinedAtRound > 1), acknowledge they received their starting points as a gift/handicap to catch up
+6. If any players gave up during the game, mention this as part of the story
+7. Keep the tone entertaining and fully embody your persona
 
 IMPORTANT: Write in plain text without any markdown formatting (no **, ##, or other markdown symbols). Use line breaks and natural emphasis through capitalization where needed. Be specific about round numbers and scores when relevant. Keep it under 250 words.${languageInstruction}`;
 

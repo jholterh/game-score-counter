@@ -6,15 +6,14 @@ import { ScoreGraph } from "./ScoreGraph";
 import { Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { LanguageSelector } from "@/components/LanguageSelector";
 import { translations, Language, formatTranslation } from "@/lib/translations";
+import { TextToSpeech } from "@/components/TextToSpeech";
 
 interface ResultsScreenProps {
   players: Player[];
   totalRounds: number;
   onNewGame: () => void;
   language: Language;
-  onLanguageChange: (lang: Language) => void;
 }
 
 const ANALYSIS_THEMES = [
@@ -32,7 +31,7 @@ const ANALYSIS_THEMES = [
   "Dad Jokes Enthusiast - Incorporates terrible puns and dad humor into the analysis"
 ];
 
-export const ResultsScreen = ({ players, totalRounds, onNewGame, language, onLanguageChange }: ResultsScreenProps) => {
+export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: ResultsScreenProps) => {
   const [analysis, setAnalysis] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>("");
@@ -53,7 +52,9 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language, onLan
           name: p.name,
           totalScore: p.totalScore,
           scores: p.scores,
-          joinedAtRound: p.joinedAtRound
+          joinedAtRound: p.joinedAtRound,
+          isActive: p.isActive,
+          gaveUpAtRound: p.gaveUpAtRound,
         })),
         totalRounds,
         theme: randomTheme,
@@ -78,13 +79,6 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language, onLan
 
   return (
     <div className="min-h-screen bg-gradient-game p-3 sm:p-4 md:p-8">
-      <div className="absolute top-4 left-4 z-10">
-        <LanguageSelector 
-          currentLanguage={language} 
-          onLanguageChange={onLanguageChange}
-        />
-      </div>
-      
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
         {/* Winner Announcement */}
         <Card className="p-6 sm:p-8 text-center bg-gradient-winner shadow-elevated">
@@ -110,6 +104,7 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language, onLan
           <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             <h2 className="text-lg sm:text-xl font-semibold">{t.gameAnalysis}</h2>
+            {analysis && <TextToSpeech text={analysis} language={language} />}
           </div>
           
           {!analysis && !isLoading && (

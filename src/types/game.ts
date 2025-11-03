@@ -5,6 +5,8 @@ export interface Player {
   scores: number[]; // Score for each round
   predictions?: number[]; // Optional prediction values for dual-scoring
   joinedAtRound: number; // Track when player joined (for mid-game additions)
+  isActive: boolean; // Track if player is still playing
+  gaveUpAtRound?: number; // Track when player gave up
 }
 
 export interface GameState {

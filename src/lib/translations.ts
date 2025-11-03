@@ -31,6 +31,10 @@ export const translations = {
       joinedGame: "{name} joined the game!",
       roundSaved: "Round {round} scores saved!",
       enterPlayerName: "Please enter a player name",
+      inactive: "Inactive",
+      playerGaveUp: "Player gave up",
+      giveUp: "Give Up",
+      rejoin: "Rejoin",
     },
     resultsScreen: {
       wins: "{name} Wins!",
@@ -76,6 +80,10 @@ export const translations = {
       joinedGame: "¡{name} se unió al juego!",
       roundSaved: "¡Puntuaciones de la ronda {round} guardadas!",
       enterPlayerName: "Por favor introduce un nombre de jugador",
+      inactive: "Inactivo",
+      playerGaveUp: "El jugador se rindió",
+      giveUp: "Rendirse",
+      rejoin: "Reincorporarse",
     },
     resultsScreen: {
       wins: "¡{name} Gana!",
@@ -121,6 +129,10 @@ export const translations = {
       joinedGame: "{name} ist dem Spiel beigetreten!",
       roundSaved: "Punktzahlen der Runde {round} gespeichert!",
       enterPlayerName: "Bitte gib einen Spielernamen ein",
+      inactive: "Inaktiv",
+      playerGaveUp: "Spieler hat aufgegeben",
+      giveUp: "Aufgeben",
+      rejoin: "Wieder Beitreten",
     },
     resultsScreen: {
       wins: "{name} Gewinnt!",

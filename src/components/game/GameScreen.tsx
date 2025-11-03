@@ -22,7 +22,7 @@ interface GameScreenProps {
   onPreviousRound: () => void;
   onAddPlayer: (name: string, startingScore: number) => void;
   onFinishGame: () => void;
-  onLanguageChange: (lang: Language) => void;
+  onTogglePlayerActive: (playerId: string) => void;
 }
 
 export const GameScreen = ({
@@ -35,7 +35,7 @@ export const GameScreen = ({
   onPreviousRound,
   onAddPlayer,
   onFinishGame,
-  onLanguageChange,
+  onTogglePlayerActive,
 }: GameScreenProps) => {
   const [roundScores, setRoundScores] = useState<Record<string, { score: string; prediction: string }>>({});
   const [newPlayerName, setNewPlayerName] = useState("");
@@ -59,16 +59,18 @@ export const GameScreen = ({
   };
 
   const handleSubmitRound = () => {
-    const scores: RoundScore[] = players.map(player => {
-      const scoreValue = roundScores[player.id]?.score;
-      const predictionValue = roundScores[player.id]?.prediction;
-      
-      return {
-        playerId: player.id,
-        score: parseFloat(scoreValue) || 0,
-        prediction: isDualScoring ? (parseFloat(predictionValue) || 0) : undefined,
-      };
-    });
+    const scores: RoundScore[] = players
+      .filter(player => player.isActive)
+      .map(player => {
+        const scoreValue = roundScores[player.id]?.score;
+        const predictionValue = roundScores[player.id]?.prediction;
+        
+        return {
+          playerId: player.id,
+          score: parseFloat(scoreValue || "0"),
+          prediction: isDualScoring ? parseFloat(predictionValue || "0") : undefined,
+        };
+      });
 
     onScoreSubmit(scores);
     onNextRound();
@@ -93,13 +95,6 @@ export const GameScreen = ({
 
   return (
     <div className="min-h-screen bg-gradient-game p-3 sm:p-4 md:p-8">
-      <div className="absolute top-4 left-4 z-10">
-        <LanguageSelector 
-          currentLanguage={language} 
-          onLanguageChange={onLanguageChange}
-        />
-      </div>
-      
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
         {/* Header */}
         <Card className="p-4 sm:p-6 shadow-elevated">
@@ -165,28 +160,46 @@ export const GameScreen = ({
           <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">{t.enterScores} {currentRound}</h2>
           <div className="space-y-3 sm:space-y-4">
             {players.map(player => (
-              <div key={player.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 items-center">
-                <Label className="font-semibold text-sm sm:text-base">{player.name}</Label>
-                <div>
-                  <Label className="text-sm text-muted-foreground">{t.score}</Label>
-                  <Input
-                    type="number"
-                    value={roundScores[player.id]?.score || ""}
-                    onChange={(e) => handleScoreChange(player.id, e.target.value, 'score')}
-                    placeholder="0"
-                  />
+              <div key={player.id} className={`grid grid-cols-1 sm:grid-cols-${isDualScoring ? '4' : '3'} gap-2 sm:gap-4 items-center ${!player.isActive ? 'opacity-50' : ''}`}>
+                <div className="flex items-center gap-2">
+                  <Label className="font-semibold text-sm sm:text-base">{player.name}</Label>
+                  {!player.isActive && <span className="text-xs text-muted-foreground">({t.inactive})</span>}
                 </div>
-                {isDualScoring && (
-                  <div>
-                    <Label className="text-sm text-muted-foreground">{t.prediction}</Label>
-                    <Input
-                      type="number"
-                      value={roundScores[player.id]?.prediction || ""}
-                      onChange={(e) => handleScoreChange(player.id, e.target.value, 'prediction')}
-                      placeholder="0"
-                    />
+                {player.isActive ? (
+                  <>
+                    <div>
+                      <Label className="text-sm text-muted-foreground">{t.score}</Label>
+                      <Input
+                        type="number"
+                        value={roundScores[player.id]?.score || ""}
+                        onChange={(e) => handleScoreChange(player.id, e.target.value, 'score')}
+                        placeholder="0"
+                      />
+                    </div>
+                    {isDualScoring && (
+                      <div>
+                        <Label className="text-sm text-muted-foreground">{t.prediction}</Label>
+                        <Input
+                          type="number"
+                          value={roundScores[player.id]?.prediction || ""}
+                          onChange={(e) => handleScoreChange(player.id, e.target.value, 'prediction')}
+                          placeholder="0"
+                        />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="col-span-2 text-sm text-muted-foreground">
+                    {t.playerGaveUp}
                   </div>
                 )}
+                <Button
+                  variant={player.isActive ? "destructive" : "secondary"}
+                  size="sm"
+                  onClick={() => onTogglePlayerActive(player.id)}
+                >
+                  {player.isActive ? t.giveUp : t.rejoin}
+                </Button>
               </div>
             ))}
           </div>

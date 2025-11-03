@@ -25,6 +25,7 @@ const Index = () => {
       scores: [],
       predictions: isDualScoring ? [] : undefined,
       joinedAtRound: 1,
+      isActive: true,
     }));
 
     setGameState({
@@ -40,13 +41,16 @@ const Index = () => {
   const handleScoreSubmit = (scores: RoundScore[]) => {
     setGameState(prev => {
       const updatedPlayers = prev.players.map(player => {
+        // Skip scoring for inactive players
+        if (!player.isActive) return player;
+        
         const roundScore = scores.find(s => s.playerId === player.id);
         if (!roundScore) return player;
 
         const newScores = [...player.scores];
         const roundIndex = prev.currentRound - 1;
         
-        // Determine if we should append or update
+        // Only add/update score at the exact round index
         if (newScores.length === roundIndex) {
           // Normal case: adding score for the current round
           newScores.push(roundScore.score);
@@ -54,7 +58,7 @@ const Index = () => {
           // Editing a previous round
           newScores[roundIndex] = roundScore.score;
         } else {
-          // Safety: array is too short (shouldn't happen)
+          // Safety: fill missing rounds with 0
           while (newScores.length < roundIndex) {
             newScores.push(0);
           }
@@ -119,11 +123,27 @@ const Index = () => {
       scores: scores,
       predictions: gameState.isDualScoring ? Array(previousRounds).fill(0) : undefined,
       joinedAtRound: gameState.currentRound,
+      isActive: true,
     };
 
     setGameState(prev => ({
       ...prev,
       players: [...prev.players, newPlayer],
+    }));
+  };
+
+  const handleTogglePlayerActive = (playerId: string) => {
+    setGameState(prev => ({
+      ...prev,
+      players: prev.players.map(player => 
+        player.id === playerId 
+          ? { 
+              ...player, 
+              isActive: !player.isActive,
+              gaveUpAtRound: !player.isActive ? undefined : prev.currentRound
+            }
+          : player
+      ),
     }));
   };
 
@@ -162,7 +182,7 @@ const Index = () => {
           onPreviousRound={handlePreviousRound}
           onAddPlayer={handleAddPlayer}
           onFinishGame={handleFinishGame}
-          onLanguageChange={(lang) => setGameState(prev => ({ ...prev, language: lang }))}
+          onTogglePlayerActive={handleTogglePlayerActive}
         />
       )}
       {gamePhase === 'results' && (
@@ -171,7 +191,6 @@ const Index = () => {
           totalRounds={gameState.currentRound - 1}
           onNewGame={handleNewGame}
           language={gameState.language as Language}
-          onLanguageChange={(lang) => setGameState(prev => ({ ...prev, language: lang }))}
         />
       )}
     </>
