@@ -42,11 +42,21 @@ const Index = () => {
 
         const newScores = [...player.scores];
         const roundIndex = prev.currentRound - 1;
-        newScores[roundIndex] = roundScore.score;
+        
+        // If player just joined this round, append the score instead of replacing
+        if (player.joinedAtRound === prev.currentRound) {
+          newScores.push(roundScore.score);
+        } else {
+          newScores[roundIndex] = roundScore.score;
+        }
 
         const newPredictions = player.predictions ? [...player.predictions] : undefined;
         if (newPredictions && roundScore.prediction !== undefined) {
-          newPredictions[roundIndex] = roundScore.prediction;
+          if (player.joinedAtRound === prev.currentRound) {
+            newPredictions.push(roundScore.prediction);
+          } else {
+            newPredictions[roundIndex] = roundScore.prediction;
+          }
         }
 
         return {

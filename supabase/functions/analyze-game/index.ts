@@ -16,6 +16,7 @@ interface Player {
 interface GameData {
   players: Player[];
   totalRounds: number;
+  theme?: string;
 }
 
 serve(async (req) => {
@@ -25,7 +26,7 @@ serve(async (req) => {
 
   try {
     const gameData: GameData = await req.json();
-    const { players, totalRounds } = gameData;
+    const { players, totalRounds, theme } = gameData;
 
     // Sort players by score
     const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
@@ -45,10 +46,12 @@ serve(async (req) => {
       round: player.scores.indexOf(Math.min(...player.scores)) + 1
     }));
 
-    // Create analysis prompt
-    const prompt = `You are a witty game commentator providing entertaining analysis of a game that just finished. Be humorous but not mean-spirited.
-
-Game Summary:
+    // Create analysis prompt with theme
+    const themeInstruction = theme 
+      ? `Adopt this persona: ${theme}\n\n` 
+      : 'You are a witty game commentator providing entertaining analysis of a game that just finished. Be humorous but not mean-spirited.\n\n';
+    
+    const prompt = `${themeInstruction}Game Summary:
 - Total Rounds: ${totalRounds}
 - Winner: ${winner.name} with ${winner.totalScore} points
 - Last Place: ${lastPlace.name} with ${lastPlace.totalScore} points
@@ -63,13 +66,14 @@ ${biggestGains.map(g => `- ${g.name} had their best round (${g.maxGain} points) 
 ${biggestLosses.filter(l => l.maxLoss < 0).map(l => `- ${l.name} had their worst round (${l.maxLoss} points) in Round ${l.round}`).join('\n')}
 
 Provide a fun, engaging analysis that:
-1. Explains why ${winner.name} won (2-3 sentences)
-2. Analyzes why ${lastPlace.name} came in last (1-2 sentences, be gentle!)
-3. Highlights 2-3 other interesting moments from the game
-4. If any players joined mid-game, acknowledge this and adjust your analysis accordingly (don't assume they played from round 1)
-5. Keep the tone light and entertaining
+1. Stay completely in character for your assigned persona
+2. Explains why ${winner.name} won (2-3 sentences)
+3. Analyzes why ${lastPlace.name} came in last (1-2 sentences)
+4. Highlights 2-3 other interesting moments from the game
+5. CRITICAL: If any players joined mid-game (joinedAtRound > 1), acknowledge this explicitly. Do NOT assume they played from round 1 or had scores in rounds before they joined. Their scores from earlier rounds were distributed catch-up points, not actual gameplay.
+6. Keep the tone entertaining and fully embody your persona
 
-IMPORTANT: Write in plain text without any markdown formatting (no **, ##, or other markdown symbols). Use line breaks and natural emphasis through capitalization where needed. Write in a casual, entertaining style like a sports commentator. Be specific about round numbers and scores. Keep it under 250 words.`;
+IMPORTANT: Write in plain text without any markdown formatting (no **, ##, or other markdown symbols). Use line breaks and natural emphasis through capitalization where needed. Be specific about round numbers and scores when relevant. Keep it under 250 words.`;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {

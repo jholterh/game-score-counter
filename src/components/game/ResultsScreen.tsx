@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Player } from "@/types/game";
-import { PlayerScoreCard } from "./PlayerScoreCard";
 import { ScoreGraph } from "./ScoreGraph";
 import { Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,21 +13,34 @@ interface ResultsScreenProps {
   onNewGame: () => void;
 }
 
+const ANALYSIS_THEMES = [
+  "Sarcastic Sports Commentator - Over-the-top sports analysis with dramatic play-by-play commentary and backhanded compliments",
+  "Brutally Honest Friend - No filter, calls out mistakes directly but in a funny way, roasts everyone equally",
+  "Overly Dramatic Narrator - Treats the game like an epic saga with theatrical language and exaggerated stakes",
+  "Passive Aggressive - Polite on the surface but with subtle digs and 'interesting' observations about players' choices",
+  "Conspiracy Theorist - Finds suspicious patterns, suggests alliances and betrayals, questions every move",
+  "Motivational Speaker (Gone Wrong) - Tries to be inspirational but the advice is hilariously bad or misses the point",
+  "Shakespeare/Old English - Analyzes the game in flowery, archaic language like it's a historical tragedy or comedy",
+  "Robot/AI Learning Emotions - Attempts to understand human competition but gets things amusingly wrong",
+  "Trash Talk Master - Friendly roasting with gaming/competitive slang and playful insults",
+  "Nature Documentary Narrator - Describes players like animals in the wild, analyzing their 'survival strategies'",
+  "Fortune Teller/Mystic - Pretends the results were destined, reads meaning into random events",
+  "Dad Jokes Enthusiast - Incorporates terrible puns and dad humor into the analysis"
+];
+
 export const ResultsScreen = ({ players, totalRounds, onNewGame }: ResultsScreenProps) => {
   const [analysis, setAnalysis] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<string>("");
 
   const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
   const winner = sortedPlayers[0];
-  const lastPlace = sortedPlayers[sortedPlayers.length - 1];
-
-  useEffect(() => {
-    generateAnalysis();
-  }, []);
 
   const generateAnalysis = async () => {
     try {
       setIsLoading(true);
+      const randomTheme = ANALYSIS_THEMES[Math.floor(Math.random() * ANALYSIS_THEMES.length)];
+      setSelectedTheme(randomTheme);
       
       // Prepare game data for analysis
       const gameData = {
@@ -38,7 +50,8 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame }: ResultsScreen
           scores: p.scores,
           joinedAtRound: p.joinedAtRound
         })),
-        totalRounds
+        totalRounds,
+        theme: randomTheme
       };
 
       const { data, error } = await supabase.functions.invoke('analyze-game', {
@@ -85,14 +98,47 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame }: ResultsScreen
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             <h2 className="text-lg sm:text-xl font-semibold">Game Analysis</h2>
           </div>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-6 sm:py-8">
-              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
-              <span className="ml-3 text-sm sm:text-base text-muted-foreground">Analyzing your game...</span>
+          
+          {!analysis && !isLoading && (
+            <div className="text-center py-6 sm:py-8">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">
+                Ready for some entertaining commentary on the game?
+              </p>
+              <Button onClick={generateAnalysis} size="lg" className="gap-2">
+                <Sparkles className="h-5 w-5" />
+                Generate Analysis
+              </Button>
             </div>
-          ) : (
-            <div className="prose prose-sm max-w-none">
-              <p className="whitespace-pre-wrap text-sm sm:text-base text-foreground leading-relaxed">{analysis}</p>
+          )}
+          
+          {isLoading && (
+            <div className="text-center py-6 sm:py-8">
+              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary mx-auto mb-3" />
+              <p className="text-xs sm:text-sm text-muted-foreground italic">
+                Channeling {selectedTheme.split(' - ')[0]}...
+              </p>
+            </div>
+          )}
+          
+          {analysis && !isLoading && (
+            <div>
+              <div className="text-xs sm:text-sm text-muted-foreground mb-3 italic">
+                Theme: {selectedTheme.split(' - ')[0]}
+              </div>
+              <div className="prose prose-sm max-w-none">
+                <p className="whitespace-pre-wrap text-sm sm:text-base text-foreground leading-relaxed">
+                  {analysis}
+                </p>
+              </div>
+              <Button 
+                onClick={generateAnalysis} 
+                variant="outline" 
+                size="sm" 
+                className="mt-4 gap-2"
+              >
+                <Sparkles className="h-4 w-4" />
+                Try Another Theme
+              </Button>
             </div>
           )}
         </Card>
