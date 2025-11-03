@@ -160,44 +160,46 @@ export const GameScreen = ({
           <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">{t.enterScores} {currentRound}</h2>
           <div className="space-y-3 sm:space-y-4">
             {players.map(player => (
-              <div key={player.id} className={`grid grid-cols-1 sm:grid-cols-${isDualScoring ? '4' : '3'} gap-2 sm:gap-4 items-center ${!player.isActive ? 'opacity-50' : ''}`}>
-                <div className="flex items-center gap-2">
-                  <Label className="font-semibold text-sm sm:text-base">{player.name}</Label>
-                  {!player.isActive && <span className="text-xs text-muted-foreground">({t.inactive})</span>}
-                </div>
-                {player.isActive ? (
-                  <>
-                    <div>
-                      <Label className="text-sm text-muted-foreground">{t.score}</Label>
-                      <Input
-                        type="number"
-                        value={roundScores[player.id]?.score || ""}
-                        onChange={(e) => handleScoreChange(player.id, e.target.value, 'score')}
-                        placeholder="0"
-                      />
-                    </div>
-                    {isDualScoring && (
+              <div key={player.id} className={`flex gap-2 sm:gap-4 items-end ${!player.isActive ? 'opacity-50' : ''}`}>
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-${isDualScoring ? '3' : '2'} gap-2 sm:gap-4">
+                  <div>
+                    <Label className="font-semibold text-sm sm:text-base">{player.name}</Label>
+                    {!player.isActive && <span className="text-xs text-muted-foreground ml-2">({t.inactive})</span>}
+                  </div>
+                  {player.isActive ? (
+                    <>
                       <div>
-                        <Label className="text-sm text-muted-foreground">{t.prediction}</Label>
+                        <Label className="text-sm text-muted-foreground">{t.score}</Label>
                         <Input
                           type="number"
-                          value={roundScores[player.id]?.prediction || ""}
-                          onChange={(e) => handleScoreChange(player.id, e.target.value, 'prediction')}
+                          value={roundScores[player.id]?.score || ""}
+                          onChange={(e) => handleScoreChange(player.id, e.target.value, 'score')}
                           placeholder="0"
                         />
                       </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="col-span-2 text-sm text-muted-foreground">
-                    {t.playerGaveUp}
-                  </div>
-                )}
+                      {isDualScoring && (
+                        <div>
+                          <Label className="text-sm text-muted-foreground">{t.prediction}</Label>
+                          <Input
+                            type="number"
+                            value={roundScores[player.id]?.prediction || ""}
+                            onChange={(e) => handleScoreChange(player.id, e.target.value, 'prediction')}
+                            placeholder="0"
+                          />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="col-span-2 text-sm text-muted-foreground flex items-center">
+                      {t.playerGaveUp}
+                    </div>
+                  )}
+                </div>
                 <Button
                   variant={player.isActive ? "destructive" : "secondary"}
                   size="sm"
                   onClick={() => onTogglePlayerActive(player.id)}
-                  className="text-xs px-2 py-1 h-7"
+                  className="text-xs px-3 py-1 h-9 whitespace-nowrap"
                 >
                   {player.isActive ? t.giveUp : t.rejoin}
                 </Button>
