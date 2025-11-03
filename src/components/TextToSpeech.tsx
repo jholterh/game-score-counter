@@ -6,9 +6,11 @@ import { toast } from "sonner";
 interface TextToSpeechProps {
   text: string;
   language: string;
+  theme?: string;
+  onAudioRefChange?: (ref: { stop: () => void } | null) => void;
 }
 
-export const TextToSpeech = ({ text, language }: TextToSpeechProps) => {
+export const TextToSpeech = ({ text, language, theme, onAudioRefChange }: TextToSpeechProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -22,13 +24,43 @@ export const TextToSpeech = ({ text, language }: TextToSpeechProps) => {
     return voiceMap[lang] || "en-US";
   };
 
+  const getVoiceSettings = (themeStr?: string) => {
+    if (!themeStr) return { rate: 0.9, pitch: 1 };
+    
+    const themeLower = themeStr.toLowerCase();
+    
+    // Match voice characteristics to theme
+    if (themeLower.includes("sarcastic") || themeLower.includes("sports commentator")) {
+      return { rate: 1.1, pitch: 1.1 }; // Faster, higher pitch
+    } else if (themeLower.includes("brutally honest") || themeLower.includes("trash talk")) {
+      return { rate: 1.0, pitch: 0.9 }; // Normal speed, lower pitch
+    } else if (themeLower.includes("dramatic") || themeLower.includes("shakespeare")) {
+      return { rate: 0.85, pitch: 1.2 }; // Slower, theatrical
+    } else if (themeLower.includes("passive aggressive")) {
+      return { rate: 0.9, pitch: 1.0 }; // Slightly slower, normal pitch
+    } else if (themeLower.includes("conspiracy")) {
+      return { rate: 0.95, pitch: 0.85 }; // Mysterious, lower
+    } else if (themeLower.includes("motivational")) {
+      return { rate: 1.05, pitch: 1.15 }; // Energetic
+    } else if (themeLower.includes("robot") || themeLower.includes("ai")) {
+      return { rate: 0.95, pitch: 0.8 }; // Robotic
+    } else if (themeLower.includes("nature documentary")) {
+      return { rate: 0.85, pitch: 0.9 }; // Calm, soothing
+    } else if (themeLower.includes("fortune teller") || themeLower.includes("mystic")) {
+      return { rate: 0.8, pitch: 1.1 }; // Slow, mysterious
+    } else if (themeLower.includes("dad jokes")) {
+      return { rate: 1.0, pitch: 1.05 }; // Cheerful
+    }
+    
+    return { rate: 0.9, pitch: 1 }; // Default
+  };
+
   const handleSpeak = async () => {
-    if (isPlaying && audio) {
+    if (isPlaying) {
       // Stop current playback
-      audio.pause();
-      audio.currentTime = 0;
+      window.speechSynthesis.cancel();
       setIsPlaying(false);
-      setAudio(null);
+      if (onAudioRefChange) onAudioRefChange(null);
       return;
     }
 
@@ -64,23 +96,34 @@ export const TextToSpeech = ({ text, language }: TextToSpeechProps) => {
           utterance.voice = matchingVoice;
         }
         
+        const voiceSettings = getVoiceSettings(theme);
         utterance.lang = voiceLang;
-        utterance.rate = 0.9;
-        utterance.pitch = 1;
+        utterance.rate = voiceSettings.rate;
+        utterance.pitch = voiceSettings.pitch;
         
         utterance.onstart = () => {
           setIsPlaying(true);
           setIsLoading(false);
+          if (onAudioRefChange) {
+            onAudioRefChange({
+              stop: () => {
+                window.speechSynthesis.cancel();
+                setIsPlaying(false);
+              }
+            });
+          }
         };
         
         utterance.onend = () => {
           setIsPlaying(false);
+          if (onAudioRefChange) onAudioRefChange(null);
         };
         
         utterance.onerror = (event) => {
           console.error('Speech synthesis error:', event);
           setIsPlaying(false);
           setIsLoading(false);
+          if (onAudioRefChange) onAudioRefChange(null);
           toast.error("Failed to play audio");
         };
         

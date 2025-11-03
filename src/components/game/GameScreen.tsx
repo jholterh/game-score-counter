@@ -197,6 +197,7 @@ export const GameScreen = ({
                   variant={player.isActive ? "destructive" : "secondary"}
                   size="sm"
                   onClick={() => onTogglePlayerActive(player.id)}
+                  className="text-xs px-2 py-1 h-7"
                 >
                   {player.isActive ? t.giveUp : t.rejoin}
                 </Button>

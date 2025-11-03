@@ -35,10 +35,18 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: Res
   const [analysis, setAnalysis] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>("");
+  const [audioRef, setAudioRef] = useState<{ stop: () => void } | null>(null);
 
   const t = translations[language].resultsScreen;
   const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
   const winner = sortedPlayers[0];
+
+  const handleNewGame = () => {
+    if (audioRef) {
+      audioRef.stop();
+    }
+    onNewGame();
+  };
 
   const generateAnalysis = async () => {
     try {
@@ -104,7 +112,7 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: Res
           <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             <h2 className="text-lg sm:text-xl font-semibold">{t.gameAnalysis}</h2>
-            {analysis && <TextToSpeech text={analysis} language={language} />}
+            {analysis && <TextToSpeech text={analysis} language={language} theme={selectedTheme} onAudioRefChange={setAudioRef} />}
           </div>
           
           {!analysis && !isLoading && (
@@ -144,7 +152,7 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: Res
 
         {/* Actions */}
         <div className="flex gap-4 pb-4">
-          <Button onClick={onNewGame} className="flex-1" size="lg">
+          <Button onClick={handleNewGame} className="flex-1" size="lg">
             {t.startNewGame}
           </Button>
         </div>
