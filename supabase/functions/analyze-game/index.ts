@@ -68,7 +68,7 @@ Provide a fun, engaging analysis that:
 3. Highlights 2-3 other interesting moments from the game
 4. Keep the tone light and entertaining
 
-Write in a casual, entertaining style like a sports commentator. Be specific about round numbers and scores.`;
+IMPORTANT: Write in plain text without any markdown formatting (no **, ##, or other markdown symbols). Use line breaks and natural emphasis through capitalization where needed. Write in a casual, entertaining style like a sports commentator. Be specific about round numbers and scores. Keep it under 250 words.`;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {

@@ -20,8 +20,9 @@ const PLAYER_COLORS = [
 ];
 
 export const ScoreGraph = ({ players, currentRound }: ScoreGraphProps) => {
-  // Prepare data for the chart
-  const rounds = Array.from({ length: currentRound }, (_, i) => i + 1);
+  // Prepare data for the chart - always show at least round 1
+  const maxRound = Math.max(currentRound, 1);
+  const rounds = Array.from({ length: maxRound }, (_, i) => i + 1);
   
   const chartData = rounds.map(round => {
     const dataPoint: any = { round };
@@ -41,26 +42,29 @@ export const ScoreGraph = ({ players, currentRound }: ScoreGraphProps) => {
   });
 
   return (
-    <div className="w-full h-[400px] bg-card rounded-lg p-4 shadow-card">
-      <h3 className="text-lg font-semibold mb-4">Score Progression</h3>
+    <div className="w-full h-[300px] sm:h-[400px] bg-card rounded-lg p-3 sm:p-4 shadow-card">
+      <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Current Standings</h3>
       <ResponsiveContainer width="100%" height="90%">
-        <LineChart data={chartData}>
+        <LineChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
           <XAxis 
             dataKey="round" 
-            label={{ value: 'Round', position: 'insideBottom', offset: -5 }}
+            label={{ value: 'Round', position: 'insideBottom', offset: -5, className: 'text-xs sm:text-sm' }}
+            tick={{ fontSize: 12 }}
           />
           <YAxis 
-            label={{ value: 'Score', angle: -90, position: 'insideLeft' }}
+            label={{ value: 'Score', angle: -90, position: 'insideLeft', className: 'text-xs sm:text-sm' }}
+            tick={{ fontSize: 12 }}
           />
           <Tooltip 
             contentStyle={{ 
               backgroundColor: 'hsl(var(--card))',
               border: '1px solid hsl(var(--border))',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              fontSize: '12px'
             }}
           />
-          <Legend />
+          <Legend wrapperStyle={{ fontSize: '12px' }} />
           {players.map((player, index) => (
             <Line
               key={player.id}
@@ -68,8 +72,8 @@ export const ScoreGraph = ({ players, currentRound }: ScoreGraphProps) => {
               dataKey={player.name}
               stroke={PLAYER_COLORS[index % PLAYER_COLORS.length]}
               strokeWidth={2}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
+              dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
               connectNulls={false}
             />
           ))}

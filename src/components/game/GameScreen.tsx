@@ -54,6 +54,7 @@ export const GameScreen = ({
     }));
 
     onScoreSubmit(scores);
+    onNextRound();
     setRoundScores({});
     toast.success(`Round ${currentRound} scores saved!`);
   };
@@ -73,14 +74,14 @@ export const GameScreen = ({
   const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
 
   return (
-    <div className="min-h-screen bg-gradient-game p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+    <div className="min-h-screen bg-gradient-game p-3 sm:p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
         {/* Header */}
-        <Card className="p-6 shadow-elevated">
-          <div className="flex items-center justify-between">
+        <Card className="p-4 sm:p-6 shadow-elevated">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <h1 className="text-3xl font-bold">Round {currentRound}</h1>
-              <p className="text-muted-foreground">{players.length} players</p>
+              <h1 className="text-2xl sm:text-3xl font-bold">Round {currentRound}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">{players.length} players</p>
             </div>
             <div className="flex gap-2">
               <Dialog open={isAddPlayerOpen} onOpenChange={setIsAddPlayerOpen}>
@@ -117,39 +118,24 @@ export const GameScreen = ({
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button onClick={onFinishGame} variant="secondary">
-                <Flag className="h-4 w-4 mr-2" />
-                Finish Game
+              <Button onClick={onFinishGame} variant="secondary" size="sm" className="sm:size-default">
+                <Flag className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Finish Game</span>
               </Button>
             </div>
           </div>
         </Card>
 
-        {/* Score Graph */}
-        {currentRound > 1 && <ScoreGraph players={players} currentRound={currentRound} />}
-
-        {/* Current Standings */}
-        <div className="space-y-3">
-          <h2 className="text-xl font-semibold">Current Standings</h2>
-          <div className="grid gap-3">
-            {sortedPlayers.map((player, index) => (
-              <PlayerScoreCard
-                key={player.id}
-                player={player}
-                rank={index + 1}
-                isDualScoring={isDualScoring}
-              />
-            ))}
-          </div>
-        </div>
+        {/* Current Standings Graph */}
+        <ScoreGraph players={players} currentRound={currentRound} />
 
         {/* Score Entry */}
-        <Card className="p-6 shadow-card">
-          <h2 className="text-xl font-semibold mb-4">Enter Scores for Round {currentRound}</h2>
-          <div className="space-y-4">
+        <Card className="p-4 sm:p-6 shadow-card">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Enter Scores for Round {currentRound}</h2>
+          <div className="space-y-3 sm:space-y-4">
             {players.map(player => (
-              <div key={player.id} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                <Label className="font-semibold">{player.name}</Label>
+              <div key={player.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 items-center">
+                <Label className="font-semibold text-sm sm:text-base">{player.name}</Label>
                 <div>
                   <Label className="text-sm text-muted-foreground">Score</Label>
                   <Input
