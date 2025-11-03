@@ -1,73 +1,27 @@
-# Welcome to your Lovable project
+# Game Score Counter Web App
 
-## Project info
+A digital score tracking application for card games and multiplayer games that replaces pen and paper.
 
-**URL**: https://lovable.dev/projects/07d84ad8-b6d9-4b7d-95eb-b3e4785eaef9
+## Key Features
 
-## How can I edit this code?
+- **Player Setup**: Configure number of players, names, and optional dual-scoring mode (e.g., for Wizard)
+- **Score Tracking**: Add positive/negative points, navigate between rounds, edit history
+- **Player Management**: Add or remove players mid-game with custom starting scores
+- **Live Graph**: Real-time line chart showing score progression (primary scores only)
+- **AI Analysis**: Funny, personalized game commentary at the end with customizable tone/emotion
+- **Mobile-Friendly**: Optimized for quick score entry during game nights
 
-There are several ways of editing your application.
+## Scoring Modes
 
-**Use Lovable**
+- **Single Score**: Standard point tracking
+- **Dual Score**: Primary score + secondary prediction field (only primary score shown on graph)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/07d84ad8-b6d9-4b7d-95eb-b3e4785eaef9) and start prompting.
+## End Game
 
-Changes made via Lovable will be committed automatically to this repo.
+- Final score graph visualization
+- Winner announcement screen
+- AI-generated humorous analysis of key moments, why winner won, why last place lost
 
-**Use your preferred IDE**
+## Tone Options for AI Analysis
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/07d84ad8-b6d9-4b7d-95eb-b3e4785eaef9) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Choose from 12 different comedic styles including: Sarcastic Sports Commentator, Brutally Honest Friend, Overly Dramatic Narrator, Conspiracy Theorist, Nature Documentary, and more.
