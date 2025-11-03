@@ -12,6 +12,7 @@ export interface GameState {
   currentRound: number;
   isDualScoring: boolean;
   isGameFinished: boolean;
+  language: string;
 }
 
 export interface RoundScore {

@@ -1,5 +1,32 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, TooltipProps } from 'recharts';
 import { Player } from "@/types/game";
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+  if (active && payload && payload.length) {
+    // Filter out entries with undefined or null values
+    const validPayload = payload.filter(entry => entry.value !== undefined && entry.value !== null);
+    
+    if (validPayload.length === 0) return null;
+    
+    return (
+      <div style={{
+        backgroundColor: 'hsl(var(--card))',
+        border: '1px solid hsl(var(--border))',
+        borderRadius: '8px',
+        padding: '8px',
+        fontSize: '12px'
+      }}>
+        <p style={{ marginBottom: '4px', fontWeight: 'bold' }}>{`Round ${label}`}</p>
+        {validPayload.map((entry, index) => (
+          <p key={index} style={{ color: entry.color, margin: '2px 0' }}>
+            {`${entry.name}: ${entry.value}`}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 interface ScoreGraphProps {
   players: Player[];
@@ -70,12 +97,7 @@ export const ScoreGraph = ({ players, currentRound }: ScoreGraphProps) => {
             tick={{ fontSize: 12 }}
           />
           <Tooltip 
-            contentStyle={{ 
-              backgroundColor: 'hsl(var(--card))',
-              border: '1px solid hsl(var(--border))',
-              borderRadius: '8px',
-              fontSize: '12px'
-            }}
+            content={<CustomTooltip />}
           />
           <Legend wrapperStyle={{ fontSize: '12px' }} />
           {players.map((player, index) => (

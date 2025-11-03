@@ -11,6 +11,7 @@ interface ResultsScreenProps {
   players: Player[];
   totalRounds: number;
   onNewGame: () => void;
+  language: string;
 }
 
 const ANALYSIS_THEMES = [
@@ -28,7 +29,7 @@ const ANALYSIS_THEMES = [
   "Dad Jokes Enthusiast - Incorporates terrible puns and dad humor into the analysis"
 ];
 
-export const ResultsScreen = ({ players, totalRounds, onNewGame }: ResultsScreenProps) => {
+export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: ResultsScreenProps) => {
   const [analysis, setAnalysis] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>("");
@@ -51,7 +52,8 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame }: ResultsScreen
           joinedAtRound: p.joinedAtRound
         })),
         totalRounds,
-        theme: randomTheme
+        theme: randomTheme,
+        language
       };
 
       const { data, error } = await supabase.functions.invoke('analyze-game', {
@@ -130,15 +132,6 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame }: ResultsScreen
                   {analysis}
                 </p>
               </div>
-              <Button 
-                onClick={generateAnalysis} 
-                variant="outline" 
-                size="sm" 
-                className="mt-4 gap-2"
-              >
-                <Sparkles className="h-4 w-4" />
-                Try Another Theme
-              </Button>
             </div>
           )}
         </Card>

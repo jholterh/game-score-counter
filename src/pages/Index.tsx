@@ -13,9 +13,10 @@ const Index = () => {
     currentRound: 1,
     isDualScoring: false,
     isGameFinished: false,
+    language: 'en',
   });
 
-  const handleStartGame = (playerNames: string[], isDualScoring: boolean) => {
+  const handleStartGame = (playerNames: string[], isDualScoring: boolean, language: string) => {
     const players: Player[] = playerNames.map((name, index) => ({
       id: `player-${index}`,
       name,
@@ -30,6 +31,7 @@ const Index = () => {
       currentRound: 1,
       isDualScoring,
       isGameFinished: false,
+      language,
     });
     setGamePhase('playing');
   };
@@ -43,17 +45,20 @@ const Index = () => {
         const newScores = [...player.scores];
         const roundIndex = prev.currentRound - 1;
         
-        // If player just joined this round, append the score instead of replacing
+        // If player just joined this round, add the score to their initial score
         if (player.joinedAtRound === prev.currentRound) {
-          newScores.push(roundScore.score);
+          // Replace the last score (which was the distributed catch-up score) with the new score added to it
+          const catchUpScore = newScores[newScores.length - 1] || 0;
+          newScores[newScores.length - 1] = catchUpScore + roundScore.score;
         } else {
+          // For existing players, just set the score at the round index
           newScores[roundIndex] = roundScore.score;
         }
 
         const newPredictions = player.predictions ? [...player.predictions] : undefined;
         if (newPredictions && roundScore.prediction !== undefined) {
           if (player.joinedAtRound === prev.currentRound) {
-            newPredictions.push(roundScore.prediction);
+            newPredictions[newPredictions.length - 1] = roundScore.prediction;
           } else {
             newPredictions[roundIndex] = roundScore.prediction;
           }
@@ -126,6 +131,7 @@ const Index = () => {
       currentRound: 1,
       isDualScoring: false,
       isGameFinished: false,
+      language: 'en',
     });
   };
 
@@ -151,6 +157,7 @@ const Index = () => {
           players={gameState.players}
           totalRounds={gameState.currentRound - 1}
           onNewGame={handleNewGame}
+          language={gameState.language}
         />
       )}
     </>

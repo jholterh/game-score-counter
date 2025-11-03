@@ -7,13 +7,14 @@ import { Card } from "@/components/ui/card";
 import { Plus, Minus } from "lucide-react";
 
 interface SetupScreenProps {
-  onStartGame: (playerNames: string[], isDualScoring: boolean) => void;
+  onStartGame: (playerNames: string[], isDualScoring: boolean, language: string) => void;
 }
 
 export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
   const [playerCount, setPlayerCount] = useState(2);
-  const [playerNames, setPlayerNames] = useState<string[]>(["Player 1", "Player 2"]);
+  const [playerNames, setPlayerNames] = useState<string[]>(["", ""]);
   const [isDualScoring, setIsDualScoring] = useState(false);
+  const [language, setLanguage] = useState("en");
 
   const handlePlayerCountChange = (newCount: number) => {
     if (newCount < 2 || newCount > 10) return;
@@ -22,7 +23,7 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
     if (newCount > playerCount) {
       // Add new players
       for (let i = playerCount; i < newCount; i++) {
-        newNames.push(`Player ${i + 1}`);
+        newNames.push("");
       }
     } else {
       // Remove players
@@ -40,10 +41,10 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
   };
 
   const handleStart = () => {
-    if (playerNames.some(name => !name.trim())) {
-      return; // Don't start if any name is empty
-    }
-    onStartGame(playerNames, isDualScoring);
+    const finalNames = playerNames.map((name, index) => 
+      name.trim() || `Player ${index + 1}`
+    );
+    onStartGame(finalNames, isDualScoring, language);
   };
 
   return (
@@ -58,6 +59,29 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
           </div>
 
           <div className="space-y-6">
+            {/* Language Selection */}
+            <div className="space-y-3">
+              <Label className="text-lg font-semibold">Language</Label>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="it">Italiano</option>
+                <option value="pt">Português</option>
+                <option value="nl">Nederlands</option>
+                <option value="pl">Polski</option>
+                <option value="ru">Русский</option>
+                <option value="ja">日本語</option>
+                <option value="zh">中文</option>
+                <option value="ar">العربية</option>
+              </select>
+            </div>
+
             {/* Player Count */}
             <div className="space-y-3">
               <Label className="text-lg font-semibold">Number of Players</Label>

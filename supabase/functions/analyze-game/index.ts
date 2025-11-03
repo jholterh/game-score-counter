@@ -17,6 +17,7 @@ interface GameData {
   players: Player[];
   totalRounds: number;
   theme?: string;
+  language?: string;
 }
 
 serve(async (req) => {
@@ -26,7 +27,7 @@ serve(async (req) => {
 
   try {
     const gameData: GameData = await req.json();
-    const { players, totalRounds, theme } = gameData;
+    const { players, totalRounds, theme, language = 'en' } = gameData;
 
     // Sort players by score
     const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
@@ -51,6 +52,10 @@ serve(async (req) => {
       ? `Adopt this persona: ${theme}\n\n` 
       : 'You are a witty game commentator providing entertaining analysis of a game that just finished. Be humorous but not mean-spirited.\n\n';
     
+    const languageInstruction = language !== 'en'
+      ? `\n\nCRITICAL INSTRUCTION: Write your ENTIRE response in the language with ISO code "${language}". Every single word must be in this language.`
+      : '';
+    
     const prompt = `${themeInstruction}Game Summary:
 - Total Rounds: ${totalRounds}
 - Winner: ${winner.name} with ${winner.totalScore} points
@@ -73,7 +78,7 @@ Provide a fun, engaging analysis that:
 5. CRITICAL: If any players joined mid-game (joinedAtRound > 1), acknowledge this explicitly. Do NOT assume they played from round 1 or had scores in rounds before they joined. Their scores from earlier rounds were distributed catch-up points, not actual gameplay.
 6. Keep the tone entertaining and fully embody your persona
 
-IMPORTANT: Write in plain text without any markdown formatting (no **, ##, or other markdown symbols). Use line breaks and natural emphasis through capitalization where needed. Be specific about round numbers and scores when relevant. Keep it under 250 words.`;
+IMPORTANT: Write in plain text without any markdown formatting (no **, ##, or other markdown symbols). Use line breaks and natural emphasis through capitalization where needed. Be specific about round numbers and scores when relevant. Keep it under 250 words.${languageInstruction}`;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {

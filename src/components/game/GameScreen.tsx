@@ -33,7 +33,7 @@ export const GameScreen = ({
 }: GameScreenProps) => {
   const [roundScores, setRoundScores] = useState<Record<string, { score: string; prediction: string }>>({});
   const [newPlayerName, setNewPlayerName] = useState("");
-  const [newPlayerScore, setNewPlayerScore] = useState("0");
+  const [newPlayerScore, setNewPlayerScore] = useState("");
   const [isAddPlayerOpen, setIsAddPlayerOpen] = useState(false);
   
   // Calculate reference scores for new player
@@ -68,10 +68,10 @@ export const GameScreen = ({
       toast.error("Please enter a player name");
       return;
     }
-    const score = currentRound === 1 ? 0 : parseFloat(newPlayerScore) || 0;
+    const score = currentRound === 1 ? 0 : parseFloat(newPlayerScore || "0");
     onAddPlayer(newPlayerName, score);
     setNewPlayerName("");
-    setNewPlayerScore("0");
+    setNewPlayerScore("");
     setIsAddPlayerOpen(false);
     toast.success(`${newPlayerName} joined the game!`);
   };
@@ -112,7 +112,7 @@ export const GameScreen = ({
                       <Label>Starting Score {currentRound === 1 ? "(Must be 0)" : ""}</Label>
                       <Input
                         type="number"
-                        value={newPlayerScore}
+                        value={currentRound === 1 ? "" : newPlayerScore}
                         onChange={(e) => setNewPlayerScore(e.target.value)}
                         placeholder="0"
                         disabled={currentRound === 1}
