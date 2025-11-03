@@ -3,6 +3,7 @@ import { SetupScreen } from "@/components/game/SetupScreen";
 import { GameScreen } from "@/components/game/GameScreen";
 import { ResultsScreen } from "@/components/game/ResultsScreen";
 import { Player, GameState, RoundScore } from "@/types/game";
+import { Language } from "@/lib/translations";
 
 type GamePhase = 'setup' | 'playing' | 'results';
 
@@ -155,11 +156,13 @@ const Index = () => {
           players={gameState.players}
           currentRound={gameState.currentRound}
           isDualScoring={gameState.isDualScoring}
+          language={gameState.language as Language}
           onScoreSubmit={handleScoreSubmit}
           onNextRound={handleNextRound}
           onPreviousRound={handlePreviousRound}
           onAddPlayer={handleAddPlayer}
           onFinishGame={handleFinishGame}
+          onLanguageChange={(lang) => setGameState(prev => ({ ...prev, language: lang }))}
         />
       )}
       {gamePhase === 'results' && (
@@ -167,7 +170,8 @@ const Index = () => {
           players={gameState.players}
           totalRounds={gameState.currentRound - 1}
           onNewGame={handleNewGame}
-          language={gameState.language}
+          language={gameState.language as Language}
+          onLanguageChange={(lang) => setGameState(prev => ({ ...prev, language: lang }))}
         />
       )}
     </>

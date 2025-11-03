@@ -1,5 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, TooltipProps } from 'recharts';
 import { Player } from "@/types/game";
+import { translations, Language } from "@/lib/translations";
 
 const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
@@ -31,6 +32,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
 interface ScoreGraphProps {
   players: Player[];
   currentRound: number;
+  language: Language;
 }
 
 const PLAYER_COLORS = [
@@ -46,7 +48,9 @@ const PLAYER_COLORS = [
   "#a855f7", // violet
 ];
 
-export const ScoreGraph = ({ players, currentRound }: ScoreGraphProps) => {
+export const ScoreGraph = ({ players, currentRound, language }: ScoreGraphProps) => {
+  const t = translations[language].gameScreen;
+  
   // Only show completed rounds (current round - 1)
   // If we're in round 1 and haven't saved yet, show nothing
   const completedRounds = Math.max(currentRound - 1, 0);
@@ -54,36 +58,46 @@ export const ScoreGraph = ({ players, currentRound }: ScoreGraphProps) => {
   if (completedRounds === 0) {
     return (
       <div className="w-full h-[300px] sm:h-[400px] bg-card rounded-lg p-3 sm:p-4 shadow-card">
-        <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Current Standings</h3>
+        <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">{t.currentStandings}</h3>
         <div className="flex items-center justify-center h-[80%] text-muted-foreground">
-          Complete the first round to see the graph
+          {t.completeFirstRound}
         </div>
       </div>
     );
   }
   
-  const rounds = Array.from({ length: completedRounds }, (_, i) => i + 1);
+  // Include round 0 with 0 points for everyone
+  const rounds = [0, ...Array.from({ length: completedRounds }, (_, i) => i + 1)];
   
   const chartData = rounds.map(round => {
     const dataPoint: any = { round };
-    players.forEach(player => {
-      // Calculate cumulative score up to this round
-      const roundIndex = round - 1;
-      const cumulativeScore = player.scores
-        .slice(0, roundIndex + 1)
-        .reduce((sum, score) => sum + score, 0);
-      
-      // Only add data if player has joined by this round
-      if (round >= player.joinedAtRound) {
-        dataPoint[player.name] = cumulativeScore;
-      }
-    });
+    
+    if (round === 0) {
+      // Round 0: everyone starts at 0
+      players.forEach(player => {
+        dataPoint[player.name] = 0;
+      });
+    } else {
+      // Regular rounds: calculate cumulative score
+      players.forEach(player => {
+        const roundIndex = round - 1;
+        const cumulativeScore = player.scores
+          .slice(0, roundIndex + 1)
+          .reduce((sum, score) => sum + score, 0);
+        
+        // Only add data if player has joined by this round
+        if (round >= player.joinedAtRound) {
+          dataPoint[player.name] = cumulativeScore;
+        }
+      });
+    }
+    
     return dataPoint;
   });
 
   return (
     <div className="w-full h-[300px] sm:h-[400px] bg-card rounded-lg p-3 sm:p-4 shadow-card">
-      <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Current Standings</h3>
+      <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">{t.currentStandings}</h3>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" className="opacity-30" />

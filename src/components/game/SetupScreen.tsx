@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { Plus, Minus } from "lucide-react";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { translations, Language, getTranslation, formatTranslation } from "@/lib/translations";
 
 interface SetupScreenProps {
   onStartGame: (playerNames: string[], isDualScoring: boolean, language: string) => void;
@@ -14,7 +16,9 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
   const [playerCount, setPlayerCount] = useState(2);
   const [playerNames, setPlayerNames] = useState<string[]>(["", ""]);
   const [isDualScoring, setIsDualScoring] = useState(false);
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState<Language>("en");
+
+  const t = translations[language].setupScreen;
 
   const handlePlayerCountChange = (newCount: number) => {
     if (newCount < 2 || newCount > 10) return;
@@ -42,49 +46,33 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
 
   const handleStart = () => {
     const finalNames = playerNames.map((name, index) => 
-      name.trim() || `Player ${index + 1}`
+      name.trim() || `${t.playerPlaceholder} ${index + 1}`
     );
     onStartGame(finalNames, isDualScoring, language);
   };
 
   return (
     <div className="min-h-screen bg-gradient-game flex items-center justify-center p-4">
+      <div className="absolute top-4 left-4 z-10">
+        <LanguageSelector 
+          currentLanguage={language} 
+          onLanguageChange={setLanguage}
+        />
+      </div>
+      
       <Card className="w-full max-w-2xl p-8 animate-scale-in shadow-elevated">
         <div className="space-y-8">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Game Score Counter
+              {t.title}
             </h1>
-            <p className="text-muted-foreground">Set up your game to get started</p>
+            <p className="text-muted-foreground">{t.subtitle}</p>
           </div>
 
           <div className="space-y-6">
-            {/* Language Selection */}
-            <div className="space-y-3">
-              <Label className="text-lg font-semibold">Language</Label>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="fr">Français</option>
-                <option value="de">Deutsch</option>
-                <option value="it">Italiano</option>
-                <option value="pt">Português</option>
-                <option value="nl">Nederlands</option>
-                <option value="pl">Polski</option>
-                <option value="ru">Русский</option>
-                <option value="ja">日本語</option>
-                <option value="zh">中文</option>
-                <option value="ar">العربية</option>
-              </select>
-            </div>
-
             {/* Player Count */}
             <div className="space-y-3">
-              <Label className="text-lg font-semibold">Number of Players</Label>
+              <Label className="text-lg font-semibold">{t.numberOfPlayers}</Label>
               <div className="flex items-center gap-4">
                 <Button
                   variant="outline"
@@ -110,14 +98,14 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
 
             {/* Player Names */}
             <div className="space-y-3">
-              <Label className="text-lg font-semibold">Player Names</Label>
+              <Label className="text-lg font-semibold">{t.playerNames}</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {playerNames.map((name, index) => (
                   <Input
                     key={index}
                     value={name}
                     onChange={(e) => handleNameChange(index, e.target.value)}
-                    placeholder={`Player ${index + 1}`}
+                    placeholder={`${t.playerPlaceholder} ${index + 1}`}
                     className="transition-all focus:scale-105"
                   />
                 ))}
@@ -128,10 +116,10 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div className="space-y-1">
                 <Label htmlFor="dual-scoring" className="font-semibold">
-                  Dual Scoring Mode
+                  {t.dualScoring}
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Track both scores and predictions (e.g., for Wizard)
+                  {t.dualScoringDesc}
                 </p>
               </div>
               <Switch
@@ -147,7 +135,7 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
             className="w-full h-14 text-lg font-semibold"
             size="lg"
           >
-            Start Game
+            {t.startGame}
           </Button>
         </div>
       </Card>

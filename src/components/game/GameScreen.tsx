@@ -9,32 +9,40 @@ import { PlayerScoreCard } from "./PlayerScoreCard";
 import { ScoreGraph } from "./ScoreGraph";
 import { ChevronLeft, ChevronRight, Plus, Flag } from "lucide-react";
 import { toast } from "sonner";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { translations, Language, formatTranslation } from "@/lib/translations";
 
 interface GameScreenProps {
   players: Player[];
   currentRound: number;
   isDualScoring: boolean;
+  language: Language;
   onScoreSubmit: (scores: RoundScore[]) => void;
   onNextRound: () => void;
   onPreviousRound: () => void;
   onAddPlayer: (name: string, startingScore: number) => void;
   onFinishGame: () => void;
+  onLanguageChange: (lang: Language) => void;
 }
 
 export const GameScreen = ({
   players,
   currentRound,
   isDualScoring,
+  language,
   onScoreSubmit,
   onNextRound,
   onPreviousRound,
   onAddPlayer,
   onFinishGame,
+  onLanguageChange,
 }: GameScreenProps) => {
   const [roundScores, setRoundScores] = useState<Record<string, { score: string; prediction: string }>>({});
   const [newPlayerName, setNewPlayerName] = useState("");
   const [newPlayerScore, setNewPlayerScore] = useState("");
   const [isAddPlayerOpen, setIsAddPlayerOpen] = useState(false);
+  
+  const t = translations[language].gameScreen;
   
   // Calculate reference scores for new player
   const worstScore = currentRound > 1 ? Math.min(...players.map(p => p.totalScore)) : 0;
@@ -65,12 +73,12 @@ export const GameScreen = ({
     onScoreSubmit(scores);
     onNextRound();
     setRoundScores({});
-    toast.success(`Round ${currentRound} scores saved!`);
+    toast.success(formatTranslation(t.roundSaved, { round: currentRound.toString() }));
   };
 
   const handleAddPlayer = () => {
     if (!newPlayerName.trim()) {
-      toast.error("Please enter a player name");
+      toast.error(t.enterPlayerName);
       return;
     }
     const score = currentRound === 1 ? 0 : parseFloat(newPlayerScore || "0");
@@ -78,20 +86,27 @@ export const GameScreen = ({
     setNewPlayerName("");
     setNewPlayerScore("");
     setIsAddPlayerOpen(false);
-    toast.success(`${newPlayerName} joined the game!`);
+    toast.success(formatTranslation(t.joinedGame, { name: newPlayerName }));
   };
 
   const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
 
   return (
     <div className="min-h-screen bg-gradient-game p-3 sm:p-4 md:p-8">
+      <div className="absolute top-4 left-4 z-10">
+        <LanguageSelector 
+          currentLanguage={language} 
+          onLanguageChange={onLanguageChange}
+        />
+      </div>
+      
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
         {/* Header */}
         <Card className="p-4 sm:p-6 shadow-elevated">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">Round {currentRound}</h1>
-              <p className="text-sm sm:text-base text-muted-foreground">{players.length} players</p>
+              <h1 className="text-2xl sm:text-3xl font-bold">{t.round} {currentRound}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">{players.length} {t.players}</p>
             </div>
             <div className="flex gap-2">
               <Dialog open={isAddPlayerOpen} onOpenChange={setIsAddPlayerOpen}>
@@ -102,19 +117,19 @@ export const GameScreen = ({
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Add Player Mid-Game</DialogTitle>
+                    <DialogTitle>{t.addPlayer}</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label>Player Name</Label>
+                      <Label>{t.playerName}</Label>
                       <Input
                         value={newPlayerName}
                         onChange={(e) => setNewPlayerName(e.target.value)}
-                        placeholder="Enter name"
+                        placeholder={t.enterName}
                       />
                     </div>
                     <div>
-                      <Label>Starting Score {currentRound === 1 ? "(Must be 0)" : ""}</Label>
+                      <Label>{t.startingScore} {currentRound === 1 ? t.mustBeZero : ""}</Label>
                       <Input
                         type="number"
                         value={currentRound === 1 ? "" : newPlayerScore}
@@ -124,36 +139,36 @@ export const GameScreen = ({
                       />
                       {currentRound > 1 && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Reference: Worst player has {worstScore} pts, Average is {avgScore} pts
+                          {formatTranslation(t.reference, { worst: worstScore.toString(), avg: avgScore.toString() })}
                         </p>
                       )}
                     </div>
                     <Button onClick={handleAddPlayer} className="w-full">
-                      Add Player
+                      {t.addPlayer}
                     </Button>
                   </div>
                 </DialogContent>
               </Dialog>
               <Button onClick={onFinishGame} variant="secondary" size="sm" className="sm:size-default">
                 <Flag className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Finish Game</span>
+                <span className="hidden sm:inline">{t.finishGame}</span>
               </Button>
             </div>
           </div>
         </Card>
 
         {/* Current Standings Graph */}
-        <ScoreGraph players={players} currentRound={currentRound} />
+        <ScoreGraph players={players} currentRound={currentRound} language={language} />
 
         {/* Score Entry */}
         <Card className="p-4 sm:p-6 shadow-card">
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Enter Scores for Round {currentRound}</h2>
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">{t.enterScores} {currentRound}</h2>
           <div className="space-y-3 sm:space-y-4">
             {players.map(player => (
               <div key={player.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 items-center">
                 <Label className="font-semibold text-sm sm:text-base">{player.name}</Label>
                 <div>
-                  <Label className="text-sm text-muted-foreground">Score</Label>
+                  <Label className="text-sm text-muted-foreground">{t.score}</Label>
                   <Input
                     type="number"
                     value={roundScores[player.id]?.score || ""}
@@ -163,7 +178,7 @@ export const GameScreen = ({
                 </div>
                 {isDualScoring && (
                   <div>
-                    <Label className="text-sm text-muted-foreground">Prediction</Label>
+                    <Label className="text-sm text-muted-foreground">{t.prediction}</Label>
                     <Input
                       type="number"
                       value={roundScores[player.id]?.prediction || ""}
@@ -186,13 +201,13 @@ export const GameScreen = ({
             className="flex-1"
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
-            Previous Round
+            {t.previousRound}
           </Button>
           <Button
             onClick={handleSubmitRound}
             className="flex-1"
           >
-            Save & Next Round
+            {t.saveNextRound}
             <ChevronRight className="h-4 w-4 ml-2" />
           </Button>
         </div>

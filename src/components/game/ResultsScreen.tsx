@@ -6,12 +6,15 @@ import { ScoreGraph } from "./ScoreGraph";
 import { Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { translations, Language, formatTranslation } from "@/lib/translations";
 
 interface ResultsScreenProps {
   players: Player[];
   totalRounds: number;
   onNewGame: () => void;
-  language: string;
+  language: Language;
+  onLanguageChange: (lang: Language) => void;
 }
 
 const ANALYSIS_THEMES = [
@@ -29,11 +32,12 @@ const ANALYSIS_THEMES = [
   "Dad Jokes Enthusiast - Incorporates terrible puns and dad humor into the analysis"
 ];
 
-export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: ResultsScreenProps) => {
+export const ResultsScreen = ({ players, totalRounds, onNewGame, language, onLanguageChange }: ResultsScreenProps) => {
   const [analysis, setAnalysis] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>("");
 
+  const t = translations[language].resultsScreen;
   const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
   const winner = sortedPlayers[0];
 
@@ -74,41 +78,48 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: Res
 
   return (
     <div className="min-h-screen bg-gradient-game p-3 sm:p-4 md:p-8">
+      <div className="absolute top-4 left-4 z-10">
+        <LanguageSelector 
+          currentLanguage={language} 
+          onLanguageChange={onLanguageChange}
+        />
+      </div>
+      
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
         {/* Winner Announcement */}
         <Card className="p-6 sm:p-8 text-center bg-gradient-winner shadow-elevated">
           <div className="space-y-3 sm:space-y-4">
             <Sparkles className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-secondary-foreground animate-celebrate" />
             <h1 className="text-3xl sm:text-5xl font-bold text-secondary-foreground">
-              {winner.name} Wins!
+              {formatTranslation(t.wins, { name: winner.name })}
             </h1>
             <p className="text-xl sm:text-2xl text-secondary-foreground/90">
-              Final Score: {winner.totalScore} points
+              {formatTranslation(t.finalScore, { score: winner.totalScore.toString() })}
             </p>
             <p className="text-base sm:text-lg text-secondary-foreground/80">
-              in {totalRounds} rounds
+              {formatTranslation(t.inRounds, { rounds: totalRounds.toString() })}
             </p>
           </div>
         </Card>
 
         {/* Final Standings */}
-        <ScoreGraph players={players} currentRound={totalRounds + 1} />
+        <ScoreGraph players={players} currentRound={totalRounds + 1} language={language} />
 
         {/* AI Analysis */}
         <Card className="p-4 sm:p-6 shadow-card">
           <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            <h2 className="text-lg sm:text-xl font-semibold">Game Analysis</h2>
+            <h2 className="text-lg sm:text-xl font-semibold">{t.gameAnalysis}</h2>
           </div>
           
           {!analysis && !isLoading && (
             <div className="text-center py-6 sm:py-8">
               <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                Ready for some entertaining commentary on the game?
+                {t.readyForAnalysis}
               </p>
               <Button onClick={generateAnalysis} size="lg" className="gap-2">
                 <Sparkles className="h-5 w-5" />
-                Generate Analysis
+                {t.generateAnalysis}
               </Button>
             </div>
           )}
@@ -117,7 +128,7 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: Res
             <div className="text-center py-6 sm:py-8">
               <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary mx-auto mb-3" />
               <p className="text-xs sm:text-sm text-muted-foreground italic">
-                Channeling {selectedTheme.split(' - ')[0]}...
+                {formatTranslation(t.channeling, { theme: selectedTheme.split(' - ')[0] })}
               </p>
             </div>
           )}
@@ -125,7 +136,7 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: Res
           {analysis && !isLoading && (
             <div>
               <div className="text-xs sm:text-sm text-muted-foreground mb-3 italic">
-                Theme: {selectedTheme.split(' - ')[0]}
+                {formatTranslation(t.theme, { theme: selectedTheme.split(' - ')[0] })}
               </div>
               <div className="prose prose-sm max-w-none">
                 <p className="whitespace-pre-wrap text-sm sm:text-base text-foreground leading-relaxed">
@@ -139,7 +150,7 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: Res
         {/* Actions */}
         <div className="flex gap-4 pb-4">
           <Button onClick={onNewGame} className="flex-1" size="lg">
-            Start New Game
+            {t.startNewGame}
           </Button>
         </div>
       </div>
