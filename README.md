@@ -1,3 +1,7 @@
+# Link
+
+https://game-score-counter.lovable.app/
+
 # Game Score Counter Web App
 
 A digital score tracking application for card games and multiplayer games that replaces pen and paper.
