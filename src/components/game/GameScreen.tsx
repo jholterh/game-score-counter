@@ -35,6 +35,10 @@ export const GameScreen = ({
   const [newPlayerName, setNewPlayerName] = useState("");
   const [newPlayerScore, setNewPlayerScore] = useState("0");
   const [isAddPlayerOpen, setIsAddPlayerOpen] = useState(false);
+  
+  // Calculate reference scores for new player
+  const worstScore = currentRound > 1 ? Math.min(...players.map(p => p.totalScore)) : 0;
+  const avgScore = currentRound > 1 ? Math.round(players.reduce((sum, p) => sum + p.totalScore, 0) / players.length) : 0;
 
   const handleScoreChange = (playerId: string, value: string, type: 'score' | 'prediction') => {
     setRoundScores(prev => ({
@@ -64,7 +68,8 @@ export const GameScreen = ({
       toast.error("Please enter a player name");
       return;
     }
-    onAddPlayer(newPlayerName, parseFloat(newPlayerScore) || 0);
+    const score = currentRound === 1 ? 0 : parseFloat(newPlayerScore) || 0;
+    onAddPlayer(newPlayerName, score);
     setNewPlayerName("");
     setNewPlayerScore("0");
     setIsAddPlayerOpen(false);
@@ -104,13 +109,19 @@ export const GameScreen = ({
                       />
                     </div>
                     <div>
-                      <Label>Starting Score</Label>
+                      <Label>Starting Score {currentRound === 1 ? "(Must be 0)" : ""}</Label>
                       <Input
                         type="number"
                         value={newPlayerScore}
                         onChange={(e) => setNewPlayerScore(e.target.value)}
                         placeholder="0"
+                        disabled={currentRound === 1}
                       />
+                      {currentRound > 1 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Reference: Worst player has {worstScore} pts, Average is {avgScore} pts
+                        </p>
+                      )}
                     </div>
                     <Button onClick={handleAddPlayer} className="w-full">
                       Add Player

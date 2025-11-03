@@ -81,12 +81,17 @@ const Index = () => {
   };
 
   const handleAddPlayer = (name: string, startingScore: number) => {
+    // Distribute starting score across previous rounds
+    const previousRounds = gameState.currentRound - 1;
+    const scorePerRound = previousRounds > 0 ? startingScore / previousRounds : 0;
+    const scores = Array(previousRounds).fill(scorePerRound);
+    
     const newPlayer: Player = {
       id: `player-${Date.now()}`,
       name,
       totalScore: startingScore,
-      scores: Array(gameState.currentRound - 1).fill(0).concat([startingScore]),
-      predictions: gameState.isDualScoring ? Array(gameState.currentRound).fill(0) : undefined,
+      scores: scores,
+      predictions: gameState.isDualScoring ? Array(previousRounds).fill(0) : undefined,
       joinedAtRound: gameState.currentRound,
     };
 

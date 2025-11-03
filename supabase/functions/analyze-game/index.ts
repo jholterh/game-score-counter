@@ -55,7 +55,7 @@ Game Summary:
 
 Player Details:
 ${sortedPlayers.map((p, i) => 
-  `${i + 1}. ${p.name}: ${p.totalScore} points (Round scores: ${p.scores.join(', ')})`
+  `${i + 1}. ${p.name}: ${p.totalScore} points (Round scores: ${p.scores.join(', ')})${p.joinedAtRound > 1 ? ` - Joined in Round ${p.joinedAtRound}` : ''}`
 ).join('\n')}
 
 Notable Moments:
@@ -66,7 +66,8 @@ Provide a fun, engaging analysis that:
 1. Explains why ${winner.name} won (2-3 sentences)
 2. Analyzes why ${lastPlace.name} came in last (1-2 sentences, be gentle!)
 3. Highlights 2-3 other interesting moments from the game
-4. Keep the tone light and entertaining
+4. If any players joined mid-game, acknowledge this and adjust your analysis accordingly (don't assume they played from round 1)
+5. Keep the tone light and entertaining
 
 IMPORTANT: Write in plain text without any markdown formatting (no **, ##, or other markdown symbols). Use line breaks and natural emphasis through capitalization where needed. Write in a casual, entertaining style like a sports commentator. Be specific about round numbers and scores. Keep it under 250 words.`;
 

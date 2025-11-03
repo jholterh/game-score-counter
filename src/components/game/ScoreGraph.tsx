@@ -20,9 +20,22 @@ const PLAYER_COLORS = [
 ];
 
 export const ScoreGraph = ({ players, currentRound }: ScoreGraphProps) => {
-  // Prepare data for the chart - always show at least round 1
-  const maxRound = Math.max(currentRound, 1);
-  const rounds = Array.from({ length: maxRound }, (_, i) => i + 1);
+  // Only show completed rounds (current round - 1)
+  // If we're in round 1 and haven't saved yet, show nothing
+  const completedRounds = Math.max(currentRound - 1, 0);
+  
+  if (completedRounds === 0) {
+    return (
+      <div className="w-full h-[300px] sm:h-[400px] bg-card rounded-lg p-3 sm:p-4 shadow-card">
+        <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Current Standings</h3>
+        <div className="flex items-center justify-center h-[80%] text-muted-foreground">
+          Complete the first round to see the graph
+        </div>
+      </div>
+    );
+  }
+  
+  const rounds = Array.from({ length: completedRounds }, (_, i) => i + 1);
   
   const chartData = rounds.map(round => {
     const dataPoint: any = { round };
