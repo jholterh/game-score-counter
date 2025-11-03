@@ -45,22 +45,32 @@ const Index = () => {
         const newScores = [...player.scores];
         const roundIndex = prev.currentRound - 1;
         
-        // If player just joined this round, add the score to their initial score
-        if (player.joinedAtRound === prev.currentRound) {
-          // Replace the last score (which was the distributed catch-up score) with the new score added to it
-          const catchUpScore = newScores[newScores.length - 1] || 0;
-          newScores[newScores.length - 1] = catchUpScore + roundScore.score;
-        } else {
-          // For existing players, just set the score at the round index
+        // Determine if we should append or update
+        if (newScores.length === roundIndex) {
+          // Normal case: adding score for the current round
+          newScores.push(roundScore.score);
+        } else if (newScores.length > roundIndex) {
+          // Editing a previous round
           newScores[roundIndex] = roundScore.score;
+        } else {
+          // Safety: array is too short (shouldn't happen)
+          while (newScores.length < roundIndex) {
+            newScores.push(0);
+          }
+          newScores.push(roundScore.score);
         }
 
         const newPredictions = player.predictions ? [...player.predictions] : undefined;
         if (newPredictions && roundScore.prediction !== undefined) {
-          if (player.joinedAtRound === prev.currentRound) {
-            newPredictions[newPredictions.length - 1] = roundScore.prediction;
-          } else {
+          if (newPredictions.length === roundIndex) {
+            newPredictions.push(roundScore.prediction);
+          } else if (newPredictions.length > roundIndex) {
             newPredictions[roundIndex] = roundScore.prediction;
+          } else {
+            while (newPredictions.length < roundIndex) {
+              newPredictions.push(0);
+            }
+            newPredictions.push(roundScore.prediction);
           }
         }
 
@@ -68,7 +78,7 @@ const Index = () => {
           ...player,
           scores: newScores,
           predictions: newPredictions,
-          totalScore: newScores.reduce((sum, score) => sum + score, 0),
+          totalScore: newScores.reduce((sum, score) => sum + (score || 0), 0),
         };
       });
 

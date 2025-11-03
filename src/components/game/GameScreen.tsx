@@ -51,11 +51,16 @@ export const GameScreen = ({
   };
 
   const handleSubmitRound = () => {
-    const scores: RoundScore[] = players.map(player => ({
-      playerId: player.id,
-      score: parseFloat(roundScores[player.id]?.score || "0"),
-      prediction: isDualScoring ? parseFloat(roundScores[player.id]?.prediction || "0") : undefined,
-    }));
+    const scores: RoundScore[] = players.map(player => {
+      const scoreValue = roundScores[player.id]?.score;
+      const predictionValue = roundScores[player.id]?.prediction;
+      
+      return {
+        playerId: player.id,
+        score: parseFloat(scoreValue) || 0,
+        prediction: isDualScoring ? (parseFloat(predictionValue) || 0) : undefined,
+      };
+    });
 
     onScoreSubmit(scores);
     onNextRound();
