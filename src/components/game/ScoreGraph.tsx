@@ -81,9 +81,6 @@ export const ScoreGraph = ({ players, currentRound, language }: ScoreGraphProps)
       // Regular rounds: calculate cumulative score
       players.forEach(player => {
         const roundIndex = round - 1;
-        const cumulativeScore = player.scores
-          .slice(0, roundIndex + 1)
-          .reduce((sum, score) => sum + score, 0);
         
         // Check if player was active in this specific round
         // Player must have joined by this round
@@ -92,11 +89,21 @@ export const ScoreGraph = ({ players, currentRound, language }: ScoreGraphProps)
           return;
         }
         
-        // If player gave up, stop showing data after they gave up
-        if (player.gaveUpAtRound && round >= player.gaveUpAtRound) {
+        // If player is currently inactive and gave up before or at this round, no data
+        if (!player.isActive && player.gaveUpAtRound && round >= player.gaveUpAtRound) {
           // Player has given up - no data point (creates gap)
           return;
         }
+        
+        // If player was inactive during this round (gave up before and rejoined after)
+        if (player.gaveUpAtRound && round >= player.gaveUpAtRound && round < player.joinedAtRound) {
+          // Player was inactive during this round - no data
+          return;
+        }
+        
+        const cumulativeScore = player.scores
+          .slice(0, roundIndex + 1)
+          .reduce((sum, score) => sum + score, 0);
         
         // Player is active in this round
         dataPoint[player.name] = cumulativeScore;

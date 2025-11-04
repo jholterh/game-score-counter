@@ -75,11 +75,17 @@ Game Summary:
 Player Details:
 ${sortedPlayers.map((p, i) => {
   let details = `${i + 1}. ${p.name}: ${p.totalScore} points (Round scores: ${p.scores.join(', ')})`;
-  if (p.joinedAtRound > 1) {
-    details += ` - Joined in Round ${p.joinedAtRound} (starting points were a gift/handicap)`;
+  const originalJoinRound = p.joinedAtRound;
+  
+  if (originalJoinRound > 1 && (!p.gaveUpAtRound || originalJoinRound < p.gaveUpAtRound)) {
+    details += ` - Joined in Round ${originalJoinRound} (starting points were a gift/handicap)`;
   }
+  
   if (!p.isActive && p.gaveUpAtRound) {
     details += ` - Gave up at Round ${p.gaveUpAtRound}`;
+  } else if (p.isActive && p.gaveUpAtRound && originalJoinRound > p.gaveUpAtRound) {
+    // Player gave up and then rejoined
+    details += ` - Gave up at Round ${p.gaveUpAtRound}, then rejoined at Round ${originalJoinRound}`;
   } else if (!p.isActive) {
     details += ` - Gave up during game`;
   }
@@ -97,7 +103,8 @@ Provide a fun, engaging analysis that:
 4. Highlights 2-3 other interesting moments from the game
 5. CRITICAL: If any players joined mid-game (joinedAtRound > 1), acknowledge they received their starting points as a gift/handicap to catch up
 6. If any players gave up during the game, mention this as part of the story
-7. Keep the tone entertaining and fully embody your persona
+7. If any players gave up and then rejoined later, highlight this as a dramatic comeback attempt
+8. Keep the tone entertaining and fully embody your persona
 
 IMPORTANT: Write in plain text without any markdown formatting (no **, ##, or other markdown symbols). Use line breaks and natural emphasis through capitalization where needed. Be specific about round numbers and scores when relevant. Keep it under 250 words.${languageInstruction}`;
 
