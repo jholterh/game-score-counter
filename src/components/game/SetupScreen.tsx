@@ -9,7 +9,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { translations, Language, getTranslation, formatTranslation } from "@/lib/translations";
 
 interface SetupScreenProps {
-  onStartGame: (playerNames: string[], isDualScoring: boolean, language: string) => void;
+  onStartGame: (playerNames: string[], isDualScoring: boolean, language: string, highScoreWins: boolean) => void;
 }
 
 export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
@@ -17,6 +17,7 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
   const [playerNames, setPlayerNames] = useState<string[]>(["", ""]);
   const [isDualScoring, setIsDualScoring] = useState(false);
   const [language, setLanguage] = useState<Language>("en");
+  const [highScoreWins, setHighScoreWins] = useState(true);
 
   const t = translations[language].setupScreen;
 
@@ -48,7 +49,7 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
     const finalNames = playerNames.map((name, index) => 
       name.trim() || `${t.playerPlaceholder} ${index + 1}`
     );
-    onStartGame(finalNames, isDualScoring, language);
+    onStartGame(finalNames, isDualScoring, language, highScoreWins);
   };
 
   return (
@@ -126,6 +127,23 @@ export const SetupScreen = ({ onStartGame }: SetupScreenProps) => {
                 id="dual-scoring"
                 checked={isDualScoring}
                 onCheckedChange={setIsDualScoring}
+              />
+            </div>
+
+            {/* Score Direction Toggle */}
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div className="space-y-1">
+                <Label htmlFor="score-direction" className="font-semibold">
+                  {t.scoreDirection}
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {highScoreWins ? t.highScoreWins : t.lowScoreWins}
+                </p>
+              </div>
+              <Switch
+                id="score-direction"
+                checked={highScoreWins}
+                onCheckedChange={setHighScoreWins}
               />
             </div>
           </div>

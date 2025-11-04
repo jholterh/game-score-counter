@@ -15,9 +15,10 @@ const Index = () => {
     isDualScoring: false,
     isGameFinished: false,
     language: 'en',
+    highScoreWins: true,
   });
 
-  const handleStartGame = (playerNames: string[], isDualScoring: boolean, language: string) => {
+  const handleStartGame = (playerNames: string[], isDualScoring: boolean, language: string, highScoreWins: boolean) => {
     const players: Player[] = playerNames.map((name, index) => ({
       id: `player-${index}`,
       name,
@@ -34,6 +35,7 @@ const Index = () => {
       isDualScoring,
       isGameFinished: false,
       language,
+      highScoreWins,
     });
     setGamePhase('playing');
   };
@@ -163,6 +165,7 @@ const Index = () => {
       isDualScoring: false,
       isGameFinished: false,
       language: 'en',
+      highScoreWins: true,
     });
   };
 
@@ -191,6 +194,7 @@ const Index = () => {
           totalRounds={gameState.currentRound - 1}
           onNewGame={handleNewGame}
           language={gameState.language as Language}
+          highScoreWins={gameState.highScoreWins}
         />
       )}
     </>

@@ -14,6 +14,7 @@ interface ResultsScreenProps {
   totalRounds: number;
   onNewGame: () => void;
   language: Language;
+  highScoreWins: boolean;
 }
 
 const ANALYSIS_THEMES = [
@@ -31,14 +32,17 @@ const ANALYSIS_THEMES = [
   "Dad Jokes Enthusiast - Incorporates terrible puns and dad humor into the analysis"
 ];
 
-export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: ResultsScreenProps) => {
+export const ResultsScreen = ({ players, totalRounds, onNewGame, language, highScoreWins }: ResultsScreenProps) => {
   const [analysis, setAnalysis] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>("");
   const [audioRef, setAudioRef] = useState<{ stop: () => void } | null>(null);
 
   const t = translations[language].resultsScreen;
-  const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
+  // Sort players based on whether high or low score wins
+  const sortedPlayers = [...players].sort((a, b) => 
+    highScoreWins ? b.totalScore - a.totalScore : a.totalScore - b.totalScore
+  );
   const winner = sortedPlayers[0];
 
   const handleNewGame = () => {
@@ -66,7 +70,8 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language }: Res
         })),
         totalRounds,
         theme: randomTheme,
-        language
+        language,
+        highScoreWins,
       };
 
       const { data, error } = await supabase.functions.invoke('analyze-game', {

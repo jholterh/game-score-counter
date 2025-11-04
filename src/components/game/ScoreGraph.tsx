@@ -92,20 +92,14 @@ export const ScoreGraph = ({ players, currentRound, language }: ScoreGraphProps)
           return;
         }
         
-        // If player gave up, check if this round is after they gave up
-        if (player.gaveUpAtRound && round > player.gaveUpAtRound) {
-          // Player has given up - check if they've rejoined
-          // They rejoin when isActive becomes true again after giving up
-          // We only show data if they're currently active AND this is their rejoin round or later
-          if (player.isActive) {
-            // Player has rejoined - show data from this round onwards
-            dataPoint[player.name] = cumulativeScore;
-          }
-          // If not active, leave undefined (gap in line)
-        } else {
-          // Player is in their normal active period
-          dataPoint[player.name] = cumulativeScore;
+        // If player gave up, stop showing data after they gave up
+        if (player.gaveUpAtRound && round >= player.gaveUpAtRound) {
+          // Player has given up - no data point (creates gap)
+          return;
         }
+        
+        // Player is active in this round
+        dataPoint[player.name] = cumulativeScore;
       });
     }
     

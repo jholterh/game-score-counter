@@ -9,6 +9,9 @@ export const translations = {
       playerPlaceholder: "Player",
       dualScoring: "Dual Scoring Mode",
       dualScoringDesc: "Track both scores and predictions (e.g., for Wizard)",
+      scoreDirection: "Score Direction",
+      highScoreWins: "High score wins (more points = better)",
+      lowScoreWins: "Low score wins (fewer points = better)",
       startGame: "Start Game",
     },
     gameScreen: {
@@ -58,6 +61,9 @@ export const translations = {
       playerPlaceholder: "Jugador",
       dualScoring: "Modo de Puntuación Dual",
       dualScoringDesc: "Rastrea puntuaciones y predicciones (ej., para Wizard)",
+      scoreDirection: "Dirección de Puntuación",
+      highScoreWins: "Mayor puntuación gana (más puntos = mejor)",
+      lowScoreWins: "Menor puntuación gana (menos puntos = mejor)",
       startGame: "Comenzar Juego",
     },
     gameScreen: {
@@ -107,6 +113,9 @@ export const translations = {
       playerPlaceholder: "Spieler",
       dualScoring: "Dualer Punktemodus",
       dualScoringDesc: "Verfolge Punkte und Vorhersagen (z.B. für Wizard)",
+      scoreDirection: "Punktrichtung",
+      highScoreWins: "Hohe Punktzahl gewinnt (mehr Punkte = besser)",
+      lowScoreWins: "Niedrige Punktzahl gewinnt (weniger Punkte = besser)",
       startGame: "Spiel Starten",
     },
     gameScreen: {

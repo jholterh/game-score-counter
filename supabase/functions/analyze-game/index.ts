@@ -20,6 +20,7 @@ interface GameData {
   totalRounds: number;
   theme?: string;
   language?: string;
+  highScoreWins?: boolean;
 }
 
 serve(async (req) => {
@@ -29,10 +30,12 @@ serve(async (req) => {
 
   try {
     const gameData: GameData = await req.json();
-    const { players, totalRounds, theme, language = 'en' } = gameData;
+    const { players, totalRounds, theme, language = 'en', highScoreWins = true } = gameData;
 
-    // Sort players by score
-    const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
+    // Sort players by score based on whether high or low score wins
+    const sortedPlayers = [...players].sort((a, b) => 
+      highScoreWins ? b.totalScore - a.totalScore : a.totalScore - b.totalScore
+    );
     const winner = sortedPlayers[0];
     const lastPlace = sortedPlayers[sortedPlayers.length - 1];
 
@@ -58,7 +61,13 @@ serve(async (req) => {
       ? `\n\nCRITICAL INSTRUCTION: Write your ENTIRE response in the language with ISO code "${language}". Every single word must be in this language.`
       : '';
     
-    const prompt = `${themeInstruction}Game Summary:
+    const scoringSystemNote = highScoreWins 
+      ? "Note: In this game, HIGHER scores are BETTER (more points = winning)."
+      : "Note: In this game, LOWER scores are BETTER (fewer points = winning). This is important context!";
+    
+    const prompt = `${themeInstruction}${scoringSystemNote}
+
+Game Summary:
 - Total Rounds: ${totalRounds}
 - Winner: ${winner.name} with ${winner.totalScore} points
 - Last Place: ${lastPlace.name} with ${lastPlace.totalScore} points

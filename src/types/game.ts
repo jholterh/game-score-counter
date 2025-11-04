@@ -15,6 +15,7 @@ export interface GameState {
   isDualScoring: boolean;
   isGameFinished: boolean;
   language: string;
+  highScoreWins: boolean; // true = higher score is better, false = lower score is better
 }
 
 export interface RoundScore {
