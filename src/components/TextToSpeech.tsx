@@ -15,125 +15,122 @@ export const TextToSpeech = ({ text, language, theme, onAudioRefChange }: TextTo
   const [isLoading, setIsLoading] = useState(false);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
-  const getVoiceForLanguage = (lang: string): string => {
-    const voiceMap: Record<string, string> = {
-      en: "en-US",
-      es: "es-ES",
-      de: "de-DE",
-    };
-    return voiceMap[lang] || "en-US";
-  };
+  // Map themes to OpenAI voices for best character match
+  const getVoiceForTheme = (themeStr?: string): string => {
+    if (!themeStr) return "alloy";
 
-  const getVoiceSettings = (themeStr?: string) => {
-    if (!themeStr) return { rate: 0.9, pitch: 1 };
-    
     const themeLower = themeStr.toLowerCase();
-    
-    // Match voice characteristics to theme
+
+    // OpenAI voices: alloy, echo, fable, onyx, nova, shimmer
     if (themeLower.includes("sarcastic") || themeLower.includes("sports commentator")) {
-      return { rate: 1.1, pitch: 1.1 }; // Faster, higher pitch
+      return "echo"; // Energetic, confident
     } else if (themeLower.includes("brutally honest") || themeLower.includes("trash talk")) {
-      return { rate: 1.0, pitch: 0.9 }; // Normal speed, lower pitch
+      return "onyx"; // Deep, authoritative
     } else if (themeLower.includes("dramatic") || themeLower.includes("shakespeare")) {
-      return { rate: 0.85, pitch: 1.2 }; // Slower, theatrical
+      return "fable"; // Expressive, theatrical
     } else if (themeLower.includes("passive aggressive")) {
-      return { rate: 0.9, pitch: 1.0 }; // Slightly slower, normal pitch
+      return "nova"; // Warm but with edge
     } else if (themeLower.includes("conspiracy")) {
-      return { rate: 0.95, pitch: 0.85 }; // Mysterious, lower
+      return "onyx"; // Mysterious, serious
     } else if (themeLower.includes("motivational")) {
-      return { rate: 1.05, pitch: 1.15 }; // Energetic
+      return "echo"; // Energetic, uplifting
     } else if (themeLower.includes("robot") || themeLower.includes("ai")) {
-      return { rate: 0.95, pitch: 0.8 }; // Robotic
+      return "alloy"; // Neutral, balanced
     } else if (themeLower.includes("nature documentary")) {
-      return { rate: 0.85, pitch: 0.9 }; // Calm, soothing
+      return "shimmer"; // Calm, soothing
     } else if (themeLower.includes("fortune teller") || themeLower.includes("mystic")) {
-      return { rate: 0.8, pitch: 1.1 }; // Slow, mysterious
+      return "shimmer"; // Mysterious, gentle
     } else if (themeLower.includes("dad jokes")) {
-      return { rate: 1.0, pitch: 1.05 }; // Cheerful
+      return "echo"; // Cheerful, friendly
     }
-    
-    return { rate: 0.9, pitch: 1 }; // Default
+
+    return "alloy"; // Default balanced voice
   };
 
   const handleSpeak = async () => {
-    if (isPlaying) {
+    if (isPlaying && audio) {
       // Stop current playback
-      window.speechSynthesis.cancel();
+      audio.pause();
+      audio.currentTime = 0;
       setIsPlaying(false);
+      setAudio(null);
       if (onAudioRefChange) onAudioRefChange(null);
       return;
     }
 
     try {
       setIsLoading(true);
-      
-      // Use browser's built-in speech synthesis
-      if ('speechSynthesis' in window) {
-        // Cancel any ongoing speech
-        window.speechSynthesis.cancel();
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        const voiceLang = getVoiceForLanguage(language);
-        
-        // Wait for voices to be loaded
-        const voices = window.speechSynthesis.getVoices();
-        if (voices.length === 0) {
-          // If voices aren't loaded yet, wait for them
-          await new Promise<void>((resolve) => {
-            window.speechSynthesis.onvoiceschanged = () => resolve();
-            // Timeout after 1 second
-            setTimeout(resolve, 1000);
+
+      // Get the appropriate voice for the theme
+      const voice = getVoiceForTheme(theme);
+
+      // Get Supabase credentials from environment
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      // Call Supabase edge function to get audio from OpenAI
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/text-to-speech`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ text, voice }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('TTS error:', errorText);
+        throw new Error('Failed to generate speech');
+      }
+
+      // Get the audio blob from response
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audioElement = new Audio(audioUrl);
+
+      audioElement.onloadeddata = () => {
+        setIsLoading(false);
+        setIsPlaying(true);
+        setAudio(audioElement);
+
+        if (onAudioRefChange) {
+          onAudioRefChange({
+            stop: () => {
+              audioElement.pause();
+              audioElement.currentTime = 0;
+              setIsPlaying(false);
+              setAudio(null);
+            }
           });
         }
-        
-        // Find a voice that matches the language
-        const availableVoices = window.speechSynthesis.getVoices();
-        const matchingVoice = availableVoices.find(voice => 
-          voice.lang.startsWith(voiceLang.split('-')[0])
-        );
-        
-        if (matchingVoice) {
-          utterance.voice = matchingVoice;
-        }
-        
-        const voiceSettings = getVoiceSettings(theme);
-        utterance.lang = voiceLang;
-        utterance.rate = voiceSettings.rate;
-        utterance.pitch = voiceSettings.pitch;
-        
-        utterance.onstart = () => {
-          setIsPlaying(true);
-          setIsLoading(false);
-          if (onAudioRefChange) {
-            onAudioRefChange({
-              stop: () => {
-                window.speechSynthesis.cancel();
-                setIsPlaying(false);
-              }
-            });
-          }
-        };
-        
-        utterance.onend = () => {
-          setIsPlaying(false);
-          if (onAudioRefChange) onAudioRefChange(null);
-        };
-        
-        utterance.onerror = (event) => {
-          console.error('Speech synthesis error:', event);
-          setIsPlaying(false);
-          setIsLoading(false);
-          if (onAudioRefChange) onAudioRefChange(null);
-          toast.error("Failed to play audio");
-        };
-        
-        window.speechSynthesis.speak(utterance);
-      } else {
-        throw new Error("Speech synthesis not supported");
-      }
+
+        audioElement.play();
+      };
+
+      audioElement.onended = () => {
+        setIsPlaying(false);
+        setAudio(null);
+        URL.revokeObjectURL(audioUrl);
+        if (onAudioRefChange) onAudioRefChange(null);
+      };
+
+      audioElement.onerror = (event) => {
+        console.error('Audio playback error:', event);
+        setIsPlaying(false);
+        setIsLoading(false);
+        setAudio(null);
+        URL.revokeObjectURL(audioUrl);
+        if (onAudioRefChange) onAudioRefChange(null);
+        toast.error("Failed to play audio");
+      };
+
     } catch (error) {
       console.error('Text-to-speech error:', error);
-      toast.error("Text-to-speech is not supported in your browser");
+      toast.error("Failed to generate speech. Please try again.");
       setIsLoading(false);
     }
   };

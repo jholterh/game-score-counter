@@ -137,15 +137,33 @@ const Index = () => {
   const handleTogglePlayerActive = (playerId: string) => {
     setGameState(prev => ({
       ...prev,
-      players: prev.players.map(player => 
-        player.id === playerId 
-          ? { 
-              ...player, 
-              isActive: !player.isActive,
-              gaveUpAtRound: !player.isActive ? undefined : prev.currentRound
-            }
-          : player
-      ),
+      players: prev.players.map(player => {
+        if (player.id !== playerId) return player;
+
+        // Player is giving up
+        if (player.isActive) {
+          return {
+            ...player,
+            isActive: false,
+            gaveUpAtRound: prev.currentRound
+          };
+        }
+
+        // Player is rejoining
+        return {
+          ...player,
+          isActive: true,
+          joinedAtRound: prev.currentRound, // Track when they rejoined
+          gaveUpAtRound: player.gaveUpAtRound // Keep the gave up round for graph gap
+        };
+      }),
+    }));
+  };
+
+  const handleHighScoreWinsChange = (highScoreWins: boolean) => {
+    setGameState(prev => ({
+      ...prev,
+      highScoreWins,
     }));
   };
 
@@ -155,6 +173,25 @@ const Index = () => {
       isGameFinished: true,
     }));
     setGamePhase('results');
+  };
+
+  const handlePlayAgain = () => {
+    // Reset scores but keep players and settings
+    setGameState(prev => ({
+      ...prev,
+      players: prev.players.map(player => ({
+        ...player,
+        totalScore: 0,
+        scores: [],
+        predictions: prev.isDualScoring ? [] : undefined,
+        isActive: true,
+        gaveUpAtRound: undefined,
+        joinedAtRound: 1, // Reset to starting from round 1
+      })),
+      currentRound: 1,
+      isGameFinished: false,
+    }));
+    setGamePhase('playing');
   };
 
   const handleNewGame = () => {
@@ -180,12 +217,14 @@ const Index = () => {
           currentRound={gameState.currentRound}
           isDualScoring={gameState.isDualScoring}
           language={gameState.language as Language}
+          highScoreWins={gameState.highScoreWins}
           onScoreSubmit={handleScoreSubmit}
           onNextRound={handleNextRound}
           onPreviousRound={handlePreviousRound}
           onAddPlayer={handleAddPlayer}
           onFinishGame={handleFinishGame}
           onTogglePlayerActive={handleTogglePlayerActive}
+          onHighScoreWinsChange={handleHighScoreWinsChange}
         />
       )}
       {gamePhase === 'results' && (
@@ -193,6 +232,7 @@ const Index = () => {
           players={gameState.players}
           totalRounds={gameState.currentRound - 1}
           onNewGame={handleNewGame}
+          onPlayAgain={handlePlayAgain}
           language={gameState.language as Language}
           highScoreWins={gameState.highScoreWins}
         />

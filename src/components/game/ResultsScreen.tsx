@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Player } from "@/types/game";
 import { ScoreGraph } from "./ScoreGraph";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { translations, Language, formatTranslation } from "@/lib/translations";
@@ -13,6 +14,7 @@ interface ResultsScreenProps {
   players: Player[];
   totalRounds: number;
   onNewGame: () => void;
+  onPlayAgain: () => void;
   language: Language;
   highScoreWins: boolean;
 }
@@ -32,18 +34,36 @@ const ANALYSIS_THEMES = [
   "Dad Jokes Enthusiast - Incorporates terrible puns and dad humor into the analysis"
 ];
 
-export const ResultsScreen = ({ players, totalRounds, onNewGame, language, highScoreWins }: ResultsScreenProps) => {
+const THEME_NAMES = [
+  "Sarcastic Sports Commentator",
+  "Brutally Honest Friend",
+  "Overly Dramatic Narrator",
+  "Passive Aggressive",
+  "Conspiracy Theorist",
+  "Motivational Speaker (Gone Wrong)",
+  "Shakespeare/Old English",
+  "Robot/AI Learning Emotions",
+  "Trash Talk Master",
+  "Nature Documentary Narrator",
+  "Fortune Teller/Mystic",
+  "Dad Jokes Enthusiast"
+];
+
+export const ResultsScreen = ({ players, totalRounds, onNewGame, onPlayAgain, language, highScoreWins }: ResultsScreenProps) => {
   const [analysis, setAnalysis] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>("");
+  const [themePreference, setThemePreference] = useState<string>("random"); // "random" or index as string
   const [audioRef, setAudioRef] = useState<{ stop: () => void } | null>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   const t = translations[language].resultsScreen;
   // Sort players based on whether high or low score wins
-  const sortedPlayers = [...players].sort((a, b) => 
+  const sortedPlayers = [...players].sort((a, b) =>
     highScoreWins ? b.totalScore - a.totalScore : a.totalScore - b.totalScore
   );
   const winner = sortedPlayers[0];
+  const maxScore = Math.max(...sortedPlayers.map(p => Math.abs(p.totalScore)));
 
   const handleNewGame = () => {
     if (audioRef) {
@@ -55,9 +75,15 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language, highS
   const generateAnalysis = async () => {
     try {
       setIsLoading(true);
-      const randomTheme = ANALYSIS_THEMES[Math.floor(Math.random() * ANALYSIS_THEMES.length)];
-      setSelectedTheme(randomTheme);
-      
+      setShowAnalysis(true);
+
+      // Use selected theme or pick random
+      const themeToUse = themePreference === "random"
+        ? ANALYSIS_THEMES[Math.floor(Math.random() * ANALYSIS_THEMES.length)]
+        : ANALYSIS_THEMES[parseInt(themePreference)];
+
+      setSelectedTheme(themeToUse);
+
       // Prepare game data for analysis
       const gameData = {
         players: players.map(p => ({
@@ -69,7 +95,7 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language, highS
           gaveUpAtRound: p.gaveUpAtRound,
         })),
         totalRounds,
-        theme: randomTheme,
+        theme: themeToUse,
         language,
         highScoreWins,
       };
@@ -79,7 +105,7 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language, highS
       });
 
       if (error) throw error;
-      
+
       setAnalysis(data.analysis);
     } catch (error) {
       console.error('Error generating analysis:', error);
@@ -91,63 +117,148 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language, highS
   };
 
   return (
-    <div className="min-h-screen bg-gradient-game p-3 sm:p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
         {/* Winner Announcement */}
-        <Card className="p-6 sm:p-8 text-center bg-gradient-winner shadow-elevated">
-          <div className="space-y-3 sm:space-y-4">
-            <Sparkles className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-secondary-foreground animate-celebrate" />
-            <h1 className="text-3xl sm:text-5xl font-bold text-secondary-foreground">
-              {formatTranslation(t.wins, { name: winner.name })}
+        <div className="text-center space-y-6 py-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4">
+            <Trophy className="h-10 w-10 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-4xl md:text-6xl font-semibold text-white">
+              {winner.name}
             </h1>
-            <p className="text-xl sm:text-2xl text-secondary-foreground/90">
-              {formatTranslation(t.finalScore, { score: winner.totalScore.toString() })}
+            <p className="text-xl md:text-2xl text-muted-foreground">
+              Wins!
             </p>
-            <p className="text-base sm:text-lg text-secondary-foreground/80">
-              {formatTranslation(t.inRounds, { rounds: totalRounds.toString() })}
-            </p>
+          </div>
+          <div className="flex items-center justify-center gap-8 text-center">
+            <div>
+              <div className="text-4xl md:text-5xl font-mono font-semibold text-primary">
+                {winner.totalScore}
+              </div>
+              <div className="text-sm text-muted-foreground uppercase tracking-wide mt-1">
+                Points
+              </div>
+            </div>
+            <div className="w-px h-12 bg-border" />
+            <div>
+              <div className="text-4xl md:text-5xl font-mono font-semibold text-white">
+                {totalRounds}
+              </div>
+              <div className="text-sm text-muted-foreground uppercase tracking-wide mt-1">
+                Rounds
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Final Performance Graph */}
+        <Card className="p-6">
+          <h2 className="text-base font-medium text-muted-foreground uppercase tracking-wide mb-6">
+            Final Performance
+          </h2>
+          <ScoreGraph players={players} currentRound={totalRounds + 1} language={language} />
+        </Card>
+
+        {/* Final Standings with Bar Chart */}
+        <Card className="p-6">
+          <h2 className="text-base font-medium text-muted-foreground uppercase tracking-wide mb-6">
+            Final Standings
+          </h2>
+          <div className="space-y-4">
+            {sortedPlayers.map((player, index) => {
+              const percentage = maxScore > 0 ? (Math.abs(player.totalScore) / maxScore) * 100 : 0;
+              const isWinner = index === 0;
+
+              return (
+                <div key={player.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-muted-foreground w-8">
+                        {index + 1}{index === 0 ? 'st' : index === 1 ? 'nd' : index === 2 ? 'rd' : 'th'}
+                      </span>
+                      <span className="font-medium text-white">
+                        {player.name}
+                      </span>
+                      {isWinner && (
+                        <Trophy className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="font-mono text-xl font-semibold text-white">
+                        {player.totalScore}
+                      </span>
+                      <span className="text-sm text-muted-foreground w-12 text-right">
+                        {percentage.toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="relative h-2 bg-[hsl(var(--bg-elevated))] rounded-full overflow-hidden">
+                    <div
+                      className={`absolute left-0 top-0 h-full rounded-full transition-all duration-500 ${
+                        isWinner ? 'bg-gradient-blue' : 'bg-primary/60'
+                      }`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </Card>
 
-        {/* Final Standings */}
-        <ScoreGraph players={players} currentRound={totalRounds + 1} language={language} />
-
         {/* AI Analysis */}
-        <Card className="p-4 sm:p-6 shadow-card">
-          <div className="flex items-center gap-2 mb-3 sm:mb-4">
-            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            <h2 className="text-lg sm:text-xl font-semibold">{t.gameAnalysis}</h2>
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-medium text-muted-foreground uppercase tracking-wide">
+              {t.gameAnalysis}
+            </h2>
             {analysis && <TextToSpeech text={analysis} language={language} theme={selectedTheme} onAudioRefChange={setAudioRef} />}
           </div>
-          
-          {!analysis && !isLoading && (
-            <div className="text-center py-6 sm:py-8">
-              <p className="text-sm sm:text-base text-muted-foreground mb-4">
+
+          {!showAnalysis && !isLoading && (
+            <div className="text-center py-8 space-y-4">
+              <p className="text-sm text-muted-foreground">
                 {t.readyForAnalysis}
               </p>
-              <Button onClick={generateAnalysis} size="lg" className="gap-2">
-                <Sparkles className="h-5 w-5" />
+              <div className="max-w-md mx-auto">
+                <Select value={themePreference} onValueChange={setThemePreference}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select narrator style" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="random">Random (Surprise me!)</SelectItem>
+                    {THEME_NAMES.map((name, index) => (
+                      <SelectItem key={index} value={index.toString()}>
+                        {name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={generateAnalysis} variant="outline" className="gap-2">
                 {t.generateAnalysis}
               </Button>
             </div>
           )}
-          
+
           {isLoading && (
-            <div className="text-center py-6 sm:py-8">
-              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary mx-auto mb-3" />
-              <p className="text-xs sm:text-sm text-muted-foreground italic">
+            <div className="text-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
                 {formatTranslation(t.channeling, { theme: selectedTheme.split(' - ')[0] })}
               </p>
             </div>
           )}
-          
-          {analysis && !isLoading && (
-            <div>
-              <div className="text-xs sm:text-sm text-muted-foreground mb-3 italic">
+
+          {analysis && !isLoading && showAnalysis && (
+            <div className="space-y-3">
+              <div className="text-xs text-muted-foreground italic">
                 {formatTranslation(t.theme, { theme: selectedTheme.split(' - ')[0] })}
               </div>
               <div className="prose prose-sm max-w-none">
-                <p className="whitespace-pre-wrap text-sm sm:text-base text-foreground leading-relaxed">
+                <p className="whitespace-pre-wrap text-sm text-foreground/90 leading-relaxed">
                   {analysis}
                 </p>
               </div>
@@ -156,8 +267,11 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, language, highS
         </Card>
 
         {/* Actions */}
-        <div className="flex gap-4 pb-4">
-          <Button onClick={handleNewGame} className="flex-1" size="lg">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 pb-8">
+          <Button onClick={onPlayAgain} size="lg" className="min-w-[200px]" variant="default">
+            {t.playAgain}
+          </Button>
+          <Button onClick={handleNewGame} size="lg" className="min-w-[200px]" variant="outline">
             {t.startNewGame}
           </Button>
         </div>
