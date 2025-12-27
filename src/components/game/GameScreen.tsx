@@ -10,6 +10,9 @@ import { ScoreGraph } from "./ScoreGraph";
 import { ChevronLeft, ChevronRight, Plus, Flag, Medal, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { UserMenu } from "@/components/UserMenu";
+import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
+import { useAuth } from "@/hooks/useAuth";
 import { translations, Language, formatTranslation } from "@/lib/translations";
 import { validateScore, validatePrediction, validatePlayerName, sanitizeString } from "@/lib/validation";
 
@@ -40,6 +43,9 @@ interface GameScreenProps {
   onFinishGame: () => void;
   onTogglePlayerActive: (playerId: string) => void;
   onHighScoreWinsChange: (highScoreWins: boolean) => void;
+  isSyncing?: boolean;
+  syncError?: string | null;
+  lastSyncedRound?: number;
 }
 
 export const GameScreen = ({
@@ -55,12 +61,17 @@ export const GameScreen = ({
   onFinishGame,
   onTogglePlayerActive,
   onHighScoreWinsChange,
+  isSyncing = false,
+  syncError = null,
+  lastSyncedRound = 0,
 }: GameScreenProps) => {
   const [roundScores, setRoundScores] = useState<Record<string, { score: string; prediction: string }>>({});
   const [newPlayerName, setNewPlayerName] = useState("");
   const [newPlayerScore, setNewPlayerScore] = useState("");
   const [isAddPlayerOpen, setIsAddPlayerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const { user, signOut } = useAuth();
 
   // Track which players are visible in the graph - persisted to localStorage
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(() => {
@@ -69,7 +80,7 @@ export const GameScreen = ({
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        const savedSet = new Set(parsed);
+        const savedSet = new Set<string>(parsed);
         const currentPlayerIds = new Set(players.map(p => p.id));
 
         // Only restore if the saved IDs match current players (same game session)
@@ -296,6 +307,11 @@ export const GameScreen = ({
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold font-mono text-white">Round {currentRound}</h1>
             <p className="text-sm text-muted-foreground">{players.length} players</p>
+            <SyncStatusIndicator
+              isSyncing={isSyncing}
+              syncError={syncError}
+              lastSyncedRound={lastSyncedRound}
+            />
           </div>
           <div className="flex gap-2">
             <Dialog open={isAddPlayerOpen} onOpenChange={setIsAddPlayerOpen}>
@@ -386,6 +402,7 @@ export const GameScreen = ({
                 </div>
               </DialogContent>
             </Dialog>
+            {user && <UserMenu user={user} onSignOut={signOut} />}
             <Button onClick={handleFinishGame} variant="secondary" size="sm" className="hidden sm:flex">
               <Flag className="h-4 w-4 mr-2" />
               {t.finishGame}

@@ -214,7 +214,7 @@ export const ResultsScreen = ({ players, totalRounds, onNewGame, onPlayAgain, la
             <h2 className="text-base font-medium text-muted-foreground uppercase tracking-wide">
               {t.gameAnalysis}
             </h2>
-            {analysis && <TextToSpeech text={analysis} language={language} theme={selectedTheme} onAudioRefChange={setAudioRef} />}
+            {analysis && <TextToSpeech text={analysis} language={language} theme={selectedTheme} onAudioRefChange={setAudioRef} autoPreload={true} />}
           </div>
 
           {!showAnalysis && !isLoading && (

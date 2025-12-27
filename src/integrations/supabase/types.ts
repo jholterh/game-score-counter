@@ -10,14 +10,249 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
-      [_ in never]: never
+      game_participants: {
+        Row: {
+          created_at: string | null
+          final_rank: number | null
+          game_id: string
+          gave_up_at_round: number | null
+          id: string
+          is_active: boolean
+          is_winner: boolean | null
+          joined_at_round: number
+          player_name: string
+          player_order: number
+          total_score: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          final_rank?: number | null
+          game_id: string
+          gave_up_at_round?: number | null
+          id?: string
+          is_active?: boolean
+          is_winner?: boolean | null
+          joined_at_round?: number
+          player_name: string
+          player_order: number
+          total_score?: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          final_rank?: number | null
+          game_id?: string
+          gave_up_at_round?: number | null
+          id?: string
+          is_active?: boolean
+          is_winner?: boolean | null
+          joined_at_round?: number
+          player_name?: string
+          player_order?: number
+          total_score?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_participants_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          ai_analysis: string | null
+          ai_theme: string | null
+          created_at: string | null
+          created_by: string | null
+          finished_at: string | null
+          high_score_wins: boolean
+          id: string
+          is_dual_scoring: boolean
+          is_finished: boolean
+          language: string
+          started_at: string | null
+          total_rounds: number
+          updated_at: string | null
+        }
+        Insert: {
+          ai_analysis?: string | null
+          ai_theme?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          finished_at?: string | null
+          high_score_wins?: boolean
+          id?: string
+          is_dual_scoring?: boolean
+          is_finished?: boolean
+          language?: string
+          started_at?: string | null
+          total_rounds: number
+          updated_at?: string | null
+        }
+        Update: {
+          ai_analysis?: string | null
+          ai_theme?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          finished_at?: string | null
+          high_score_wins?: boolean
+          id?: string
+          is_dual_scoring?: boolean
+          is_finished?: boolean
+          language?: string
+          started_at?: string | null
+          total_rounds?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      round_scores: {
+        Row: {
+          created_at: string | null
+          cumulative_score: number
+          game_id: string
+          id: string
+          participant_id: string
+          prediction: number | null
+          round_number: number
+          score: number
+        }
+        Insert: {
+          created_at?: string | null
+          cumulative_score: number
+          game_id: string
+          id?: string
+          participant_id: string
+          prediction?: number | null
+          round_number: number
+          score: number
+        }
+        Update: {
+          created_at?: string | null
+          cumulative_score?: number
+          game_id?: string
+          id?: string
+          participant_id?: string
+          prediction?: number | null
+          round_number?: number
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "round_scores_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_scores_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "game_participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          favorite_narrator: string | null
+          id: string
+          preferred_dual_scoring: boolean | null
+          preferred_high_score_wins: boolean | null
+          preferred_language: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          favorite_narrator?: string | null
+          id?: string
+          preferred_dual_scoring?: boolean | null
+          preferred_high_score_wins?: boolean | null
+          preferred_language?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          favorite_narrator?: string | null
+          id?: string
+          preferred_dual_scoring?: boolean | null
+          preferred_high_score_wins?: boolean | null
+          preferred_language?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_statistics: {
+        Row: {
+          average_score_per_game: number | null
+          favorite_game_mode: string | null
+          highest_game_score: number | null
+          id: string
+          last_played_at: string | null
+          lowest_game_score: number | null
+          total_games_played: number
+          total_games_won: number
+          total_rounds_played: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          average_score_per_game?: number | null
+          favorite_game_mode?: string | null
+          highest_game_score?: number | null
+          id?: string
+          last_played_at?: string | null
+          lowest_game_score?: number | null
+          total_games_played?: number
+          total_games_won?: number
+          total_rounds_played?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          average_score_per_game?: number | null
+          favorite_game_mode?: string | null
+          highest_game_score?: number | null
+          id?: string
+          last_played_at?: string | null
+          lowest_game_score?: number | null
+          total_games_played?: number
+          total_games_won?: number
+          total_rounds_played?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      user_game_statistics: {
+        Row: {
+          avg_score: number | null
+          dual_scoring_games: number | null
+          high_score_games: number | null
+          max_score: number | null
+          min_score: number | null
+          total_games: number | null
+          user_id: string | null
+          wins: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

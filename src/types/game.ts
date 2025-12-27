@@ -9,6 +9,13 @@ export interface Player {
   gaveUpAtRound?: number; // Track when player gave up
 }
 
+export interface PlayerIdentityMapping {
+  playerId: string;
+  playerName: string;
+  userId: string | null;
+  isCurrentUser: boolean;
+}
+
 export interface GameState {
   players: Player[];
   currentRound: number;
@@ -16,6 +23,13 @@ export interface GameState {
   isGameFinished: boolean;
   language: string;
   highScoreWins: boolean; // true = higher score is better, false = lower score is better
+
+  // Database sync fields (null when not logged in or not saving)
+  gameId: string | null;           // UUID from games table
+  isSyncing: boolean;              // Is auto-save currently in progress?
+  lastSyncedRound: number;         // Last round successfully saved to DB
+  syncError: string | null;        // Error message if last sync failed
+  playerIdentities: PlayerIdentityMapping[]; // Maps players to user accounts
 }
 
 export interface RoundScore {

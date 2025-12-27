@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -8,12 +8,14 @@ interface TextToSpeechProps {
   language: string;
   theme?: string;
   onAudioRefChange?: (ref: { stop: () => void } | null) => void;
+  autoPreload?: boolean; // New prop to preload audio automatically
 }
 
-export const TextToSpeech = ({ text, language, theme, onAudioRefChange }: TextToSpeechProps) => {
+export const TextToSpeech = ({ text, language, theme, onAudioRefChange, autoPreload = false }: TextToSpeechProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [preloadedAudioUrl, setPreloadedAudioUrl] = useState<string | null>(null);
 
   // Map themes to OpenAI voices for best character match
   const getVoiceForTheme = (themeStr?: string): string => {
@@ -47,28 +49,13 @@ export const TextToSpeech = ({ text, language, theme, onAudioRefChange }: TextTo
     return "alloy"; // Default balanced voice
   };
 
-  const handleSpeak = async () => {
-    if (isPlaying && audio) {
-      // Stop current playback
-      audio.pause();
-      audio.currentTime = 0;
-      setIsPlaying(false);
-      setAudio(null);
-      if (onAudioRefChange) onAudioRefChange(null);
-      return;
-    }
-
+  // Function to generate and cache audio
+  const generateAudio = async (): Promise<string | null> => {
     try {
-      setIsLoading(true);
-
-      // Get the appropriate voice for the theme
       const voice = getVoiceForTheme(theme);
-
-      // Get Supabase credentials from environment
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      // Call Supabase edge function to get audio from OpenAI
       const response = await fetch(
         `${supabaseUrl}/functions/v1/text-to-speech`,
         {
@@ -82,17 +69,66 @@ export const TextToSpeech = ({ text, language, theme, onAudioRefChange }: TextTo
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('TTS error:', errorText);
-        throw new Error('Failed to generate speech');
+        console.error('TTS preload error');
+        return null;
       }
 
-      // Get the audio blob from response
       const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
+      return URL.createObjectURL(audioBlob);
+    } catch (error) {
+      console.error('Failed to preload audio:', error);
+      return null;
+    }
+  };
+
+  // Preload audio when component mounts if autoPreload is true
+  useEffect(() => {
+    if (autoPreload && text && !preloadedAudioUrl) {
+      setIsLoading(true);
+      toast.info("Preparing audio...", { duration: 2000 });
+      generateAudio().then((url) => {
+        setPreloadedAudioUrl(url);
+        setIsLoading(false);
+      });
+    }
+
+    // Cleanup: revoke object URL when component unmounts
+    return () => {
+      if (preloadedAudioUrl) {
+        URL.revokeObjectURL(preloadedAudioUrl);
+      }
+    };
+  }, [autoPreload, text, theme]);
+
+  const handleSpeak = async () => {
+    if (isPlaying && audio) {
+      // Stop current playback
+      audio.pause();
+      audio.currentTime = 0;
+      setIsPlaying(false);
+      setAudio(null);
+      if (onAudioRefChange) onAudioRefChange(null);
+      return;
+    }
+
+    try {
+      let audioUrl: string | null = preloadedAudioUrl;
+
+      // If no preloaded audio, generate it now
+      if (!audioUrl) {
+        setIsLoading(true);
+        toast.info("Generating speech...", { duration: 2000 });
+        audioUrl = await generateAudio();
+
+        if (!audioUrl) {
+          throw new Error('Failed to generate speech');
+        }
+      }
+
       const audioElement = new Audio(audioUrl);
 
-      audioElement.onloadeddata = () => {
+      // Use canplay instead of onloadeddata to start playing sooner
+      audioElement.oncanplay = () => {
         setIsLoading(false);
         setIsPlaying(true);
         setAudio(audioElement);
